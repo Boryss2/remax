@@ -12468,6 +12468,13 @@ footer .hotline img {
     }
 }
 
+/* For screens smaller than 992px (phones), hide the hero slider */
+@media (max-width: 991.98px) {
+    .home-slider {
+        display: none;
+    }
+}
+
 /*# sourceMappingURL=main.css.map */
 
 /* Cookies */
