@@ -12468,6 +12468,22 @@ footer .hotline img {
     }
 }
 
+/* For screens smaller than 992px (phones), hide the hero slider */
+@media (max-width: 991.98px) {
+    .home-slider {
+        display: none;
+    }
+
+    .header-action-icon-2 {
+        display: flex;
+        align-items: left;
+    }
+    
+    .burger-icon {
+        margin-right: 10px; /* Adjust the spacing between the burger icon and the logo */
+    }
+}
+
 /*# sourceMappingURL=main.css.map */
 
 /* Cookies */

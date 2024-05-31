@@ -3,14 +3,18 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException, ElementClickInterceptedException
 import sqlite3
 import time
+from selenium.webdriver.chrome.options import Options
 
-# Initialize Chrome WebDriver
-chrome_driver_path = r"D:\app\visual studio\Remax\chromedriver-win64\chromedriver-win64\chromedriver.exe"
+# Initialize Chrome WebDriver with headless option
+chrome_driver_path = r"D:\app\visual studio\Remax\chromedriver-win64\chromedriver.exe"
+chrome_options = Options()
+chrome_options.add_argument("--headless")
 service = Service(chrome_driver_path)
-driver = webdriver.Chrome(service=service)
+driver = webdriver.Chrome(service=service, options=chrome_options)
+
 
 # Connect to SQLite database
 conn = sqlite3.connect('listings.db')
@@ -21,26 +25,35 @@ c.execute('''CREATE TABLE IF NOT EXISTS listings
              (title TEXT, PLN TEXT, EUR TEXT, listing_type TEXT, property_type TEXT, lot_size TEXT, image_src TEXT, link_to_offer TEXT)''')
 
 # URL of the website
-base_url = 'https://www.remax-polska.pl/PublicListingList.aspx?SelectedCountryID=47#mode=hybrid&cur=PLN&sb=PriceDecreasing&page={}&sc=47&lat=52.30396870443272&lng=19.874267578125004&zoom=7&nelat=54.36775852406841&nelng=23.994140625000004&swlat=50.240178884797025&swlng=15.754394531250002&sid=56ec9c63-76d3-4376-86c3-e70a93dd7f63&oid=81029'
+base_url = 'https://www.remax-polska.pl/PublicListingList.aspx?SelectedCountryID=47#mode=gallery&cur=PLN&sb=PriceDecreasing&page=1&sc=47&sid=56ec9c63-76d3-4376-86c3-e70a93dd7f63&oid=81029'
 
 # Load the first page
 page_number = 1
 url = base_url.format(page_number)
 driver.get(url)
 
-# Wait for the cookie consent banner to appear
-cookie_banner = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'CybotCookiebotDialog')))
+# Function to accept cookies
+def accept_cookies():
+    try:
+        cookie_banner = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'CybotCookiebotDialog')))
+        accept_button = driver.find_element(By.ID, 'CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll')
+        
+        # Scroll to the accept button
+        driver.execute_script("arguments[0].scrollIntoView();", accept_button)
+        try:
+            accept_button.click()
+        except ElementClickInterceptedException:
+            decline_button = driver.find_element(By.ID, 'CybotCookiebotDialogBodyLevelButtonLevelOptinDeclineAll')
+            driver.execute_script("arguments[0].scrollIntoView();", decline_button)
+            time.sleep(1)
+            accept_button.click()
+        
+        WebDriverWait(driver, 10).until(EC.invisibility_of_element_located((By.ID, 'CybotCookiebotDialog')))
+    except TimeoutException:
+        pass
 
-# Accept cookies if the banner is present
-if cookie_banner:
-    accept_button = driver.find_element(By.ID, 'CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll')
-    accept_button.click()
-
-# Wait for the cookie consent banner to disappear
-try:
-    WebDriverWait(driver, 10).until(EC.invisibility_of_element_located((By.ID, 'CybotCookiebotDialog')))
-except TimeoutException:
-    pass
+# Accept cookies
+accept_cookies()
 
 # Wait for the listings to be rendered
 time.sleep(20)  # Adjust the wait time as needed

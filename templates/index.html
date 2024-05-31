@@ -77,83 +77,74 @@
                             <span class="burger-icon-bottom"></span>
                         </div>
                     </div>
+                    <div class="logo logo-width-1 d-block d-lg-none">
+                        <a href="#">
+                            <img src="static/assets/imgs/theme/logo.png" alt="logo" />
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
+        </div>        
     </header>
-    <div class="mobile-header-active mobile-header-wrapper-style">
-        <div class="mobile-header-wrapper-inner">
-            <div class="mobile-header-top">
-                <div class="mobile-header-logo">
-                    <a href=""><img src="static/assets/imgs/theme/logo.png" alt="logo" /></a>
-                </div>
-                <div class="mobile-menu-close close-style-wrap close-style-position-inherit">
-                    <button class="close-style search-close">
-                        <i class="icon-top"></i>
-                        <i class="icon-bottom"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="mobile-header-content-area">
-                <div class="mobile-menu-wrap mobile-header-border">
-                    <!-- mobile menu start -->
-                    <nav>
-                        <ul class="mobile-menu font-heading">
-                            <li>
-                                <a href="https://www.remax-polska.pl/PublicListingList.aspx?SelectedCountryID=47#mode=hybrid&cur=PLN&sb=PriceDecreasing&page=1&sc=47&lat=52.37105265509379&lng=19.874267578125004&zoom=7&nelat=54.43171285946844&nelng=23.994140625000004&swlat=50.31039245071915&swlng=15.754394531250002&sid=56ec9c63-76d3-4376-86c3-e70a93dd7f63&oid=81029">Nieruchomości</a>
-                            </li>                    
-                            <li>
-                                <a href="https://www.youtube.com/@REMAXAstraa">Youtube</a>
-                            </li>
-                            <li>                          
-                                <a href="https://www.remax-polska.pl/pl-pl/biura/mazowieckie/warszawa/remax-astra/81029">Zespół</a>
-                            </li>
-                            <li>
-                                <a href="https://re-max.elementapp.ai/application/v2/19da3e04-c906-4268-83dc-b76424612434/0eff9bcc-bfdc-4abd-86cb-bc20e3bfec85?source=bcec58c8-cb38-4e7a-81ee-e277102158af">Aplikuj</a>
-                            </li>
-                        </ul>
-                    </nav>
-                    <!-- mobile menu end -->
-                </div>
-                <div class="mobile-social-icon mb-50">
-                    <a href="https://www.facebook.com/remaxastrawarszawa"><img src="static/assets/imgs/theme/icons/icon-facebook-white.svg" alt="" /></a>
-                    <a href="https://www.instagram.com/remax.astra/"><img src="static/assets/imgs/theme/icons/icon-instagram-white.svg" alt="" /></a>
-                    <a href="https://www.linkedin.com/company/74372002/"><img src="static/assets/imgs/theme/icons/Linkedin_icon.svg" alt="" /></a>
-                    <a href="https://www.youtube.com/@REMAXAstraa"><img src="static/assets/imgs/theme/icons/icon-youtube-white.svg" alt="" /></a>
-                </div>
-                <div class="site-copyright">Copyright 2024 © BNS Sp. z o.o. All rights reserved.</div>
-            </div>
-        </div>
-    </div>
+
+
     <div class="container">
         <div class="row">
+            <!-- Listings -->
+            <div class="col-lg-6">
+                <div class="row">
+                    {% for listing in listings %}
+                        {% if listing.image_src.startswith('https://remax.azureedge.net/userimages/47') %}
+                            <div class="col-lg-6">
+                                <a href="{{ listing.link_to_offer }}" class="listing-card-link">
+                                    <div class="listing-card">
+                                        <div class="listing-img">
+                                            <img src="{{ listing.image_src }}" alt="{{ listing.title }}" class="img-fluid">
+                                        </div>
+                                        <div class="listing-details">
+                                            <h2 class="listing-title">{{ listing.title }}</h2>
+                                            <p class="listing-info">{{ listing.property_type }} - {{ listing.listing_type }}</p>
+                                            <p class="listing-price">{{ listing.PLN }} / {{ listing.EUR }}</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <!--Map-->
+                <div>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2445.708409802784!2d20.948162576996083!3d52.19417276030131!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x471933a0791dc867%3A0x76c5ffe1c212a989!2sRE%2FMAX%20Astra%20Nieruchomo%C5%9Bci%20Warszawa!5e0!3m2!1spl!2spl!4v1710758367822!5m2!1spl!2spl" height="450" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" style="border: 0; border-radius: 15px; width: 100%; object-fit: contain;"></iframe>
+                </div>
+                <!--End map-->
+                <!--END LEFT COLUMN-->
+            </div>
             <!-- Hero -->
             <div class="col-lg-6">
-                <div class="container">
-                    <section class="home-slider position-relative mb-0">
-                        <div class="home-slide-cover mt-0">
-                            <div class="hero-slider-1 style-4 dot-style-1 dot-style-1-position-1">
-                                {% for listing in listings %}
-                                    {% if listing.image_src.startswith('https://remax.azureedge.net/userimages/47') %}
-                                        <a href="{{ listing.link_to_offer }}">
-                                            <div class="single-hero-slider single-animation-wrap" style="border-radius: 15px; background-image: url('{{ listing.image_src }}') ">    
-                                                <div class="slider-content" style="border-radius: 15px;">
-                                                    <h1 style="margin-left: 5px;">{{ listing.title }}</h1>
-                                                    <p style="margin-left: 5px; margin-bottom: 2px;">{{ listing.property_type }}, {{ listing.listing_type }}, {{ listing.PLN }} / {{ listing.EUR }}</p>
-                                                </div>
+                <section class="home-slider position-relative mb-0">
+                    <div class="home-slide-cover mt-0">
+                        <div class="hero-slider-1 style-4 dot-style-1 dot-style-1-position-1">
+                            {% for listing in listings %}
+                                {% if listing.image_src.startswith('https://remax.azureedge.net/userimages/47') %}
+                                    <a href="{{ listing.link_to_offer }}">
+                                        <div class="single-hero-slider single-animation-wrap" style="border-radius: 15px; background-image: url('{{ listing.image_src }}') ">    
+                                            <div class="slider-content" style="border-radius: 15px;">
+                                                <h1 style="margin-left: 5px;">{{ listing.title }}</h1>
+                                                <p style="margin-left: 5px; margin-bottom: 2px;">{{ listing.property_type }}, {{ listing.listing_type }}, {{ listing.PLN }} / {{ listing.EUR }}</p>
                                             </div>
-                                        </a>    
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                            <div class="slider-arrow hero-slider-1-arrow"></div>
+                                        </div>
+                                    </a>    
+                                {% endif %}
+                            {% endfor %}
                         </div>
-                    </section>
-                </div>
+                        <div class="slider-arrow hero-slider-1-arrow"></div>
+                    </div>
+                </section>
+                
                 <!-- End hero -->
 
                 <div class="container">
-                    <div style="background-color: rgb: (255, 255, 255); padding: 30px; border-radius: 15px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+                    <div style="background-color: rgb (255, 255, 255); padding: 30px; border-radius: 15px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
                         <h2 style="font-size: 28px; font-weight: bold; margin-bottom: 20px; text-align: center; text-transform: uppercase; letter-spacing: 2px;">RE/MAX Astra Warszawa - Twój Partner w Świecie Nieruchomości</h2>
                         <p style="font-size: 18px; line-height: 1.6; text-align: justify;">W żyłach naszej działalności płynie miłość do nieruchomości i pasja do obsługi klienta. Zapomnij o suchych faktach i statystykach, u nas liczą się konkretne działania i rzetelność.</p>
                         <div>
@@ -186,7 +177,7 @@
                 </div>
 
                 <div class="container">
-                    <div style="background-color: rgb: (255, 255, 255); padding: 30px; border-radius: 15px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+                    <div style="background-color: rgb (255, 255, 255); padding: 30px; border-radius: 15px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
                         <h2 style="font-size: 28px; font-weight: bold; margin-bottom: 20px; text-align: center; text-transform: uppercase; letter-spacing: 2px;">Jesteśmy Twoim Partnerem w sprzedaży nieruchomości</h2>
                         <p style="font-size: 18px; line-height: 1.6; text-align: justify;">Szukasz profesjonalnego partnera, który zapewni skuteczną sprzedaż lub wynajem Twojej nieruchomości? Chcesz mieć pewność, że oddajesz swoją własność w ręce doświadczonych ekspertów? Właśnie znalazłeś idealne miejsce.</p>
                         <hr style="border-top: 1px solid #dee2e6; margin-top: 30px; margin-bottom: 30px;">
@@ -238,7 +229,7 @@
                 
                 
                 <div class="container">
-                    <div style="background-color: rgb: (255, 255, 255); padding: 30px; border-radius: 15px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+                    <div style="background-color: rgb (255, 255, 255); padding: 30px; border-radius: 15px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
                         <h2 style="font-size: 28px; font-weight: bold; margin-bottom: 20px; text-align: center; text-transform: uppercase; letter-spacing: 2px;">RE/MAX Astra - Twój partner w poszukiwaniu wymarzonych nieruchomości</h2>
                         <p style="font-size: 18px; line-height: 1.6; text-align: justify;">W RE/MAX Astra nie tylko pomagamy znaleźć idealne miejsce do życia, ale również tworzymy nowe historie i spełniamy marzenia naszych klientów.</p>
                         <hr style="border-top: 1px solid #dee2e6; margin-top: 30px; margin-bottom: 30px;">
@@ -263,7 +254,7 @@
                 </div>
 
                 <div class="container">
-                    <div style="background-color: rgb: (255, 255, 255); padding: 30px; border-radius: 15px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+                    <div style="background-color: rgb (255, 255, 255); padding: 30px; border-radius: 15px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
                         <h2 style="font-size: 28px; font-weight: bold; margin-bottom: 20px; text-align: center; text-transform: uppercase; letter-spacing: 2px;">Dołącz do Zespołu RE/MAX Astra</h2>
                         <p style="font-size: 18px; line-height: 1.6; text-align: justify;">Witaj w RE/MAX Astra w Warszawie - miejscu, gdzie Twoje marzenia o karierze w nieruchomościach stają się rzeczywistością! Jeśli szukasz nowych wyzwań zawodowych, pragniesz prowadzić własny biznes pod renomowanym szyldem i fascynuje Cię świat nieruchomości, to oferta naszego biura jest stworzona dla Ciebie!
                             <br>
@@ -294,46 +285,57 @@
                     </div>
                 </div>
                 </strong>
-                
-                
-
-                
             </div>
-            <!--End left column-->
-            
-            <!-- Listings -->
-            <div class="col-lg-6">
-                <div class="row">
-                    {% for listing in listings %}
-                        {% if listing.image_src.startswith('https://remax.azureedge.net/userimages/47') %}
-                            <div class="col-lg-6">
-                                <a href="{{ listing.link_to_offer }}" class="listing-card-link">
-                                    <div class="listing-card">
-                                        <div class="listing-img">
-                                            <img src="{{ listing.image_src }}" alt="{{ listing.title }}" class="img-fluid">
-                                        </div>
-                                        <div class="listing-details">
-                                            <h2 class="listing-title">{{ listing.title }}</h2>
-                                            <p class="listing-info">{{ listing.property_type }} - {{ listing.listing_type }}</p>
-                                            <p class="listing-price">{{ listing.PLN }} / {{ listing.EUR }}</p>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-                <!--Map-->
-                <div>
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2445.708409802784!2d20.948162576996083!3d52.19417276030131!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x471933a0791dc867%3A0x76c5ffe1c212a989!2sRE%2FMAX%20Astra%20Nieruchomo%C5%9Bci%20Warszawa!5e0!3m2!1spl!2spl!4v1710758367822!5m2!1spl!2spl" height="450" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" style="border: 0; border-radius: 15px; width: 100%; object-fit: contain;"></iframe>
-                </div>
-                <!--End map-->
-            </div>
+            <!--END RIGHT COLUMN-->
         </div>
     </div>
     <!-- End listings -->
 
-    
+
+    <div class="mobile-header-active mobile-header-wrapper-style">
+        <div class="mobile-header-wrapper-inner">
+            <div class="mobile-header-top">
+                <div class="mobile-header-logo">
+                    <a href=""><img src="static/assets/imgs/theme/logo.png" alt="logo" /></a>
+                </div>
+                <div class="mobile-menu-close close-style-wrap close-style-position-inherit">
+                    <button class="close-style search-close">
+                        <i class="icon-top"></i>
+                        <i class="icon-bottom"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="mobile-header-content-area">
+                <div class="mobile-menu-wrap mobile-header-border">
+                    <!-- mobile menu start -->
+                    <nav>
+                        <ul class="mobile-menu font-heading">
+                            <li>
+                                <a href="https://www.remax-polska.pl/PublicListingList.aspx?SelectedCountryID=47#mode=hybrid&cur=PLN&sb=PriceDecreasing&page=1&sc=47&lat=52.37105265509379&lng=19.874267578125004&zoom=7&nelat=54.43171285946844&nelng=23.994140625000004&swlat=50.31039245071915&swlng=15.754394531250002&sid=56ec9c63-76d3-4376-86c3-e70a93dd7f63&oid=81029">Nieruchomości</a>
+                            </li>                    
+                            <li>
+                                <a href="https://www.youtube.com/@REMAXAstraa">Youtube</a>
+                            </li>
+                            <li>                          
+                                <a href="https://www.remax-polska.pl/pl-pl/biura/mazowieckie/warszawa/remax-astra/81029">Zespół</a>
+                            </li>
+                            <li>
+                                <a href="https://re-max.elementapp.ai/application/v2/19da3e04-c906-4268-83dc-b76424612434/0eff9bcc-bfdc-4abd-86cb-bc20e3bfec85?source=bcec58c8-cb38-4e7a-81ee-e277102158af">Aplikuj</a>
+                            </li>
+                        </ul>
+                    </nav>
+                    <!-- mobile menu end -->
+                </div>
+                <div class="mobile-social-icon mb-50">
+                    <a href="https://www.facebook.com/remaxastrawarszawa"><img src="static/assets/imgs/theme/icons/icon-facebook-white.svg" alt="" /></a>
+                    <a href="https://www.instagram.com/remax.astra/"><img src="static/assets/imgs/theme/icons/icon-instagram-white.svg" alt="" /></a>
+                    <a href="https://www.linkedin.com/company/74372002/"><img src="static/assets/imgs/theme/icons/Linkedin_icon.svg" alt="" /></a>
+                    <a href="https://www.youtube.com/@REMAXAstraa"><img src="static/assets/imgs/theme/icons/icon-youtube-white.svg" alt="" /></a>
+                </div>
+                <div class="site-copyright">Copyright 2024 © BNS Sp. z o.o. All rights reserved.</div>
+            </div>
+        </div>
+    </div>
 
     <!--Footer-->
     <header class="header-area header-style-1 header-height-2">

@@ -1,6 +1,7 @@
 from flask import Flask, render_template
 import sqlite3
 import os
+import uvicorn 
 
 app = Flask(__name__, template_folder='templates')
 
@@ -28,4 +29,5 @@ def index():
     return render_template('index.html', listings=listings)
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run()
+
