@@ -27,16 +27,41 @@ jobs:
         run: sudo apt-get update
 
       - name: Install Google Chrome
-        run: sudo apt-get install -y google-chrome-stable
+        run: |
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt-get install -y ./google-chrome-stable_current_amd64.deb
 
       - name: Set up Chrome and Chromedriver
         run: |
-          echo "CHROME_VERSION=$(google-chrome --version | grep -oP '\\d+\\.\\d+\\.\\d+')" >> $GITHUB_ENV
+          set -e  # Exit immediately if a command exits with a non-zero status
+
+          # Debug: Check the installed Chrome version
+          google-chrome --version
+
+          # Extract the Chrome version and store it in the GITHUB_ENV
           CHROME_VERSION=$(google-chrome --version | grep -oP '\\d+\\.\\d+\\.\\d+')
           echo "CHROME_VERSION=$CHROME_VERSION" >> $GITHUB_ENV
+          
+          # Debug: Verify the extracted Chrome version
+          echo "Extracted Chrome version: $CHROME_VERSION"
+          
+          # Fetch the appropriate Chromedriver version for the extracted Chrome version
           CHROMEDRIVER_VERSION=$(curl -sS "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
+          
+          # Debug: Verify the fetched Chromedriver version
+          echo "Fetched Chromedriver version: $CHROMEDRIVER_VERSION"
+          
+          # Download the Chromedriver zip file
           wget -N "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip"
+          
+          # Unzip the Chromedriver file to /usr/local/bin/
           unzip chromedriver_linux64.zip -d /usr/local/bin/
+          
+          # Ensure chromedriver is executable
+          chmod +x /usr/local/bin/chromedriver
+
+          # Debug: Verify the Chromedriver installation
+          /usr/local/bin/chromedriver --version
 
       - name: Run scraping script
         run: python scrapingscript.py
