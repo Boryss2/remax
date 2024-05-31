@@ -31,40 +31,13 @@ jobs:
           wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
           sudo apt-get install -y ./google-chrome-stable_current_amd64.deb
 
-      - name: Set up Chrome and Chromedriver
+      - name: Install ChromeDriver
         run: |
-          set -e  # Exit immediately if a command exits with a non-zero status
-          
-          # Debug: Check the installed Chrome version
-          google-chrome --version
-          
-          # Extract the Chrome version and store it in the GITHUB_ENV
-          CHROME_VERSION=$(google-chrome --version | grep -oP '\\d+\\.\\d+\\.\\d+')
-          echo "CHROME_VERSION=$CHROME_VERSION" >> $GITHUB_ENV
-          
-          # Debug: Verify the extracted Chrome version
-          echo "Extracted Chrome version: $CHROME_VERSION"
-          
-          # Fetch the appropriate Chromedriver version for the extracted Chrome version
+          CHROME_VERSION=${{ env.CHROME_VERSION }}
           CHROMEDRIVER_VERSION=$(curl -sS "https://storage.googleapis.com/chrome-for-testing-public/125.0.6422.141/linux64/chromedriver-linux64.zip")
-          
-          # Debug: Verify the fetched Chromedriver version
-          echo "Fetched Chromedriver version: $CHROMEDRIVER_VERSION"
-          
-          # Download the Chromedriver zip file
           wget -N "https://storage.googleapis.com/chrome-for-testing-public/125.0.6422.141/linux64/chromedriver-linux64.zip"
-          
-          # Unzip the Chromedriver file to /usr/local/bin/
-          unzip chromedriver_linux64.zip -d /usr/local/bin/
-          
-          # Ensure chromedriver is executable
-          chmod +x /usr/local/bin/chromedriver
-          
-          # Debug: Verify the Chromedriver installation
-          /usr/local/bin/chromedriver --version
-
-      - name: Verify Chromedriver Download
-        run: ls -l chromedriver_linux64.zip
+          unzip chromedriver_linux64.zip -d /usr/local/bin
+          rm chromedriver_linux64.zip
 
       - name: Run scraping script
         run: python scrapingscript.py
