@@ -120,3 +120,6 @@ driver.quit()
 
 # Close the database connection
 conn.close()
+
+# Don't forget to close the driver after scraping
+driver.quit()
