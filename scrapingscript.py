@@ -7,9 +7,15 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException,
 import sqlite3
 import time
 from selenium.webdriver.chrome.options import Options
+import os
+
+# Determine the ChromeDriver path based on the environment
+if os.name == 'nt':  # if running on Windows
+    chrome_driver_path = r"chromedriver.exe"
+else:  # if running on Linux
+    chrome_driver_path = "/usr/local/bin/chromedriver"
 
 # Initialize Chrome WebDriver with headless option
-chrome_driver_path = r"chromedriver.exe"
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 service = Service(chrome_driver_path)
