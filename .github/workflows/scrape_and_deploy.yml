@@ -29,17 +29,14 @@ jobs:
       - name: Install Google Chrome
         run: sudo apt-get install -y google-chrome-stable
 
-      - name: Get Chrome Version
-        id: get-chrome-version
-        run: echo "CHROME_VERSION=$(google-chrome --version | grep -oP '\\d+\\.\\d+\\.\\d+')" >> $GITHUB_ENV
-
-      - name: Install ChromeDriver
+      - name: Set up Chrome and Chromedriver
         run: |
-          CHROME_VERSION=${{ env.CHROME_VERSION }}
-          CHROMEDRIVER_VERSION=$(curl -sS "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION%.*}")
+          echo "CHROME_VERSION=$(google-chrome --version | grep -oP '\\d+\\.\\d+\\.\\d+')" >> $GITHUB_ENV
+          CHROME_VERSION=$(google-chrome --version | grep -oP '\\d+\\.\\d+\\.\\d+')
+          echo "CHROME_VERSION=$CHROME_VERSION" >> $GITHUB_ENV
+          CHROMEDRIVER_VERSION=$(curl -sS "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
           wget -N "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip"
-          unzip chromedriver_linux64.zip -d /usr/local/bin
-          rm chromedriver_linux64.zip
+          unzip chromedriver_linux64.zip -d /usr/local/bin/
 
       - name: Run scraping script
         run: python scrapingscript.py
