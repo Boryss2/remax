@@ -62,6 +62,9 @@ jobs:
           
           # Debug: Verify the Chromedriver installation
           /usr/local/bin/chromedriver --version
+          
+      - name: Verify Chromedriver Download
+        run: ls -l chromedriver_linux64.zip
 
       - name: Run scraping script
         run: python scrapingscript.py
