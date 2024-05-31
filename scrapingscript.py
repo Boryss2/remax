@@ -9,7 +9,7 @@ import time
 from selenium.webdriver.chrome.options import Options
 
 # Initialize Chrome WebDriver with headless option
-chrome_driver_path = r"D:\app\visual studio\Remax\chromedriver-win64\chromedriver.exe"
+chrome_driver_path = r"chromedriver.exe"
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 service = Service(chrome_driver_path)
