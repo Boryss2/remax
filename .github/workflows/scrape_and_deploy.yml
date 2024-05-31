@@ -36,8 +36,8 @@ jobs:
           CHROME_VERSION=${{ env.CHROME_VERSION }}
           CHROMEDRIVER_VERSION=$(curl -sS "https://storage.googleapis.com/chrome-for-testing-public/125.0.6422.141/linux64/chromedriver-linux64.zip")
           wget -N "https://storage.googleapis.com/chrome-for-testing-public/125.0.6422.141/linux64/chromedriver-linux64.zip"
-          unzip chromedriver_linux64.zip -d /usr/local/bin
-          rm chromedriver_linux64.zip
+          unzip chromedriver-linux64.zip -d /usr/local/bin
+          rm chromedriver-linux64.zip
 
       - name: Run scraping script
         run: python scrapingscript.py
