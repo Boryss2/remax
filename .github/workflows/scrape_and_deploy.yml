@@ -34,10 +34,10 @@ jobs:
       - name: Set up Chrome and Chromedriver
         run: |
           set -e  # Exit immediately if a command exits with a non-zero status
-
+          
           # Debug: Check the installed Chrome version
           google-chrome --version
-
+          
           # Extract the Chrome version and store it in the GITHUB_ENV
           CHROME_VERSION=$(google-chrome --version | grep -oP '\\d+\\.\\d+\\.\\d+')
           echo "CHROME_VERSION=$CHROME_VERSION" >> $GITHUB_ENV
@@ -59,7 +59,7 @@ jobs:
           
           # Ensure chromedriver is executable
           chmod +x /usr/local/bin/chromedriver
-
+          
           # Debug: Verify the Chromedriver installation
           /usr/local/bin/chromedriver --version
 
