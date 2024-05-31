@@ -21,7 +21,6 @@ chrome_options.add_argument("--headless")
 service = Service(chrome_driver_path)
 driver = webdriver.Chrome(service=service, options=chrome_options)
 
-
 # Connect to SQLite database
 conn = sqlite3.connect('listings.db')
 c = conn.cursor()
@@ -121,5 +120,5 @@ driver.quit()
 # Close the database connection
 conn.close()
 
-# Don't forget to close the driver after scraping
 driver.quit()
+
