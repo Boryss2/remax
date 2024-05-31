@@ -10,7 +10,7 @@ from selenium.webdriver.chrome.options import Options
 import os
 
 # Determine the ChromeDriver path based on the environment
-chrome_driver_path = r"chromedriver" if os.name == 'nt' else "/usr/local/bin/chromedriver"
+chrome_driver_path = r"/usr/local/bin/chromedriver"
 
 # Initialize Chrome WebDriver with headless option
 chrome_options = Options()
