@@ -46,13 +46,13 @@ jobs:
           echo "Extracted Chrome version: $CHROME_VERSION"
           
           # Fetch the appropriate Chromedriver version for the extracted Chrome version
-          CHROMEDRIVER_VERSION=$(curl -sS "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
+          CHROMEDRIVER_VERSION=$(curl -sS "https://storage.googleapis.com/chrome-for-testing-public/125.0.6422.141/linux64/chromedriver-linux64.zip")
           
           # Debug: Verify the fetched Chromedriver version
           echo "Fetched Chromedriver version: $CHROMEDRIVER_VERSION"
           
           # Download the Chromedriver zip file
-          wget -N "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip"
+          wget -N "https://storage.googleapis.com/chrome-for-testing-public/125.0.6422.141/linux64/chromedriver-linux64.zip"
           
           # Unzip the Chromedriver file to /usr/local/bin/
           unzip chromedriver_linux64.zip -d /usr/local/bin/
@@ -62,7 +62,7 @@ jobs:
           
           # Debug: Verify the Chromedriver installation
           /usr/local/bin/chromedriver --version
-          
+
       - name: Verify Chromedriver Download
         run: ls -l chromedriver_linux64.zip
 
