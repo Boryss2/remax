@@ -38,13 +38,7 @@ jobs:
           wget -N "https://storage.googleapis.com/chrome-for-testing-public/125.0.6422.141/linux64/chromedriver-linux64.zip"
           unzip chromedriver-linux64.zip -d /usr/local/bin
           rm chromedriver-linux64.zip
-      
-          # Ensure chromedriver is executable
-          chmod +x /usr/local/bin/chromedriver
-          
-          # Debug: Verify the Chromedriver installation
-          /usr/local/bin/chromedriver --version
-
+  
       - name: Verify Chromedriver Download
         run: ls -l chromedriver_linux64.zip
 
