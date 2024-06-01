@@ -9,10 +9,6 @@ jobs:
   scrape_and_deploy:
     runs-on: ubuntu-latest
     
-    env:
-      CHROME_VERSION: '125.0.6422.141'
-      CHROMEDRIVER_VERSION: '125.0.6422.141'
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -27,25 +23,35 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Update apt-get
+        run: sudo apt-get update
+
       - name: Install Google Chrome
         run: |
-          wget https://storage.googleapis.com/chrome-for-testing-public/${{ env.CHROME_VERSION }}/linux64/chrome-linux64.zip
-          unzip chrome-linux64.zip -d /usr/local
-          rm chrome-linux64.zip
-          ln -s /usr/local/chrome-linux64/chrome /usr/bin/google-chrome
+          wget https://storage.googleapis.com/chrome-for-testing-public/125.0.6422.141/linux64/chrome-linux64.zip
+          unzip chrome-linux64.zip -d chrome
+          sudo mv chrome/chrome-linux64 /usr/local/bin/google-chrome
+          sudo ln -s /usr/local/bin/google-chrome/chrome /usr/local/bin/google-chrome-stable
+          sudo ln -s /usr/local/bin/google-chrome/chrome /usr/local/bin/google-chrome-beta
+          sudo ln -s /usr/local/bin/google-chrome/chrome /usr/local/bin/google-chrome-unstable
 
       - name: Install ChromeDriver
         run: |
-          wget https://storage.googleapis.com/chrome-for-testing-public/${{ env.CHROMEDRIVER_VERSION }}/linux64/chromedriver-linux64.zip
-          unzip chromedriver-linux64.zip -d /usr/local/bin
-          rm chromedriver-linux64.zip
+          wget https://storage.googleapis.com/chrome-for-testing-public/125.0.6422.141/linux64/chromedriver-linux64.zip
+          unzip chromedriver-linux64.zip -d chromedriver
+          sudo mv chromedriver/chromedriver-linux64/chromedriver /usr/local/bin/
+          sudo chmod +x /usr/local/bin/chromedriver
 
       - name: Verify installations
         run: |
           echo "Google Chrome version:"
-          /usr/bin/google-chrome --version
+          /usr/local/bin/google-chrome/chrome --version
           echo "ChromeDriver version:"
-          /usr/local/bin/chromedriver --version
+          chromedriver --version
+          echo "Google Chrome directory:"
+          which google-chrome
+          echo "ChromeDriver directory:"
+          which chromedriver
 
       - name: Run scraping script
         run: python scrapingscript.py
