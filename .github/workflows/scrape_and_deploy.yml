@@ -39,6 +39,17 @@ jobs:
           unzip chromedriver-linux64.zip -d /usr/local/bin
           rm chromedriver-linux64.zip
 
+      - name: Verify installations
+        run: |
+          echo "Google Chrome version:"
+          google-chrome --version
+          echo "ChromeDriver version:"
+          chromedriver --version
+          echo "Google Chrome directory:"
+          which google-chrome
+          echo "ChromeDriver directory:"
+          which chromedriver
+
       - name: Run scraping script
         run: python scrapingscript.py
 
