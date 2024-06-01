@@ -10,7 +10,7 @@ from selenium.webdriver.chrome.options import Options
 import os
 
 # Determine the ChromeDriver path based on the environment
-chrome_driver_path = r"chromedriver" if os.name == 'nt' else "/usr/local/bin/chromedriver"
+chrome_driver_path = r"chromedriver.exe" if os.name == 'nt' else "/usr/local/bin/chromedriver"
 
 # Initialize Chrome WebDriver with headless option
 chrome_options = Options()
@@ -29,7 +29,12 @@ c.execute('''CREATE TABLE IF NOT EXISTS listings
              (title TEXT, PLN TEXT, EUR TEXT, listing_type TEXT, property_type TEXT, lot_size TEXT, image_src TEXT, link_to_offer TEXT)''')
 
 # URL of the website
-base_url = 'https://www.remax-polska.pl/PublicListingList.aspx?SelectedCountryID=47#mode=gallery&cur=PLN&sb=PriceDecreasing&page={}&sc=47&sid=56ec9c63-76d3-4376-86c3-e70a93dd7f63&oid=81029'
+base_url = 'https://www.remax-polska.pl/PublicListingList.aspx?SelectedCountryID=47#mode=gallery&cur=PLN&sb=PriceDecreasing&page=1&sc=47&sid=56ec9c63-76d3-4376-86c3-e70a93dd7f63&oid=81029'
+
+# Load the first page
+page_number = 1
+url = base_url.format(page_number)
+driver.get(url)
 
 # Function to accept cookies
 def accept_cookies():
@@ -51,20 +56,14 @@ def accept_cookies():
     except TimeoutException:
         pass
 
-# Load the first page and accept cookies
-driver.get(base_url.format(1))
+# Accept cookies
 accept_cookies()
 
 # Wait for the listings to be rendered
 time.sleep(20)  # Adjust the wait time as needed
 
 # Scraping loop
-page_number = 1
 while True:
-    url = base_url.format(page_number)
-    driver.get(url)
-    time.sleep(10)  # Adjust the wait time as needed
-    
     # Find all gallery item containers
     listings = driver.find_elements(By.CLASS_NAME, 'gallery-item-container')
 
@@ -102,14 +101,20 @@ while True:
     # Check if there's a next page
     try:
         next_button = driver.find_element(By.XPATH, "//li[@class='active']/following-sibling::li/a[@class='ajax-page-link']")
-        next_button.click()
-        page_number += 1
     except NoSuchElementException:
         break  # Break the loop if there's no next page
 
-    # Wait for the listings to be rendered after clicking the next button
+    # Scroll to the next button to bring it into view
+    driver.execute_script("arguments[0].scrollIntoView();", next_button)
+
+    # Click on the next page button
+    driver.execute_script("arguments[0].click();", next_button)
+
+    # Wait for the listings to be rendered after scrolling
     time.sleep(10)  # Adjust the wait time as needed
 
-# Close the browser and database connection
+# Close the browser
 driver.quit()
+
+# Close the database connection
 conn.close()
