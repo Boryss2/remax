@@ -51,12 +51,15 @@ jobs:
           echo "ChromeDriver directory:"
           which chromedriver
 
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
       - name: Remove existing listings.db
         run: |
           if [ -f listings.db ]; then
-            git rm listings.db
-            git commit -m 'Remove existing listings.db'
-            git push
+            rm listings.db
           fi
 
       - name: Run scraping script
