@@ -51,6 +51,14 @@ jobs:
           echo "ChromeDriver directory:"
           which chromedriver
 
+      - name: Remove existing listings.db
+        run: |
+          if [ -f listings.db ]; then
+            git rm listings.db
+            git commit -m 'Remove existing listings.db'
+            git push
+          fi
+
       - name: Run scraping script
         run: python scrapingscript.py
 
