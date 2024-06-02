@@ -28,9 +28,9 @@ jobs:
 
       - name: Install Google Chrome
         run: |
-          wget https://storage.googleapis.com/chrome-for-testing-public/125.0.6422.141/linux64/chrome-linux64.zip
-          unzip chrome-linux64.zip -d chrome
-          sudo mv chrome/chrome-linux64 /usr/local/bin/google-chrome
+          wget https://storage.googleapis.com/chrome-for-testing-public/125.0.6422.141/linux64/chrome-headless-shell-linux64.zip
+          unzip chrome-headless-shell-linux64.zip -d chrome
+          sudo mv chrome/chrome-headless-shell-linux64 /usr/local/bin/google-chrome
           sudo ln -s /usr/local/bin/google-chrome/chrome /usr/local/bin/google-chrome-stable
           sudo ln -s /usr/local/bin/google-chrome/chrome /usr/local/bin/google-chrome-beta
           sudo ln -s /usr/local/bin/google-chrome/chrome /usr/local/bin/google-chrome-unstable
