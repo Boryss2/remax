@@ -87,12 +87,24 @@ while True:
 
             # Extract image source and link to offer
             image_container = listing.find_element(By.CLASS_NAME, 'gallery-photo')
-            image_src = image_container.find_element(By.TAG_NAME, 'img').get_attribute('src')
-            # Check if the image source is the placeholder video icon
-            if 'video-icon.svg' in image_src:
-                # If it's the video icon, get the data-src attribute which holds the actual image source
-                image_src = image_container.find_element(By.TAG_NAME, 'img').get_attribute('data-src')
+            image_elements = image_container.find_elements(By.TAG_NAME, 'img')
+
+            # Initialize image source
+            image_src = ""
+
+            # Loop through image elements to find the correct source
+            for img in image_elements:
+                img_src = img.get_attribute('src')
+                if 'video-icon.svg' not in img_src:
+                    image_src = img_src
+                    break
+
+            # If no image source found yet, take the last image source
+            if not image_src and image_elements:
+                image_src = image_elements[-1].get_attribute('src')
+
             link_to_offer = listing.find_element(By.TAG_NAME, 'a').get_attribute('href')
+
 
             # Insert data into the database
             c.execute("INSERT INTO listings VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
