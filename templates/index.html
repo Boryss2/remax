@@ -123,19 +123,22 @@
             <div class="col-lg-6">
                 <section class="home-slider position-relative mb-0">
                     <div class="home-slide-cover mt-0">
-
-                        {% for listing in listings %}
-                            {% if listing.image_src.startswith('https://remax.azureedge.net/userimages/47') %}
-                                <a href="{{ listing.link_to_offer }}">
-                                    <div class="single-hero-slider single-animation-wrap" style="border-radius: 15px; background-image: url('{{ listing.image_src }}') ">    
-                                        <div class="slider-content" style="border-radius: 15px;">
-                                            <h1 style="margin-left: 5px;">{{ listing.title }}</h1>
-                                            <p style="margin-left: 5px; margin-bottom: 2px;">{{ listing.property_type }}, {{ listing.listing_type }}, {{ listing.PLN }} / {{ listing.EUR }}</p>                                            </div>
+                        <div class="hero-slider-1 style-4 dot-style-1">
+                            {% for listing in listings %}
+                                {% if listing.image_src.startswith('https://remax.azureedge.net/userimages/47') %}
+                                    <a href="{{ listing.link_to_offer }}">
+                                        <div class="single-hero-slider single-animation-wrap" style="border-radius: 15px; background-image: url('{{ listing.image_src }}') ">    
+                                            <div class="slider-content" style="border-radius: 15px;">
+                                                <h1 style="margin-left: 5px;">{{ listing.title }}</h1>
+                                                <p style="margin-left: 5px; margin-bottom: 2px;">{{ listing.property_type }}, {{ listing.listing_type }}, {{ listing.PLN }} / {{ listing.EUR }}</p>
+                                            </div>
                                         </div>
-                                </a>    
-                            {% endif %}
-                        {% endfor %}
-                    <div class="slider-arrow hero-slider-1-arrow"></div>
+                                    </a>    
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="slider-arrow hero-slider-1-arrow"></div>
+                    </div>
                 </section>
                 
                 <!-- End hero -->
