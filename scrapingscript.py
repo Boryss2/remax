@@ -78,23 +78,25 @@ while True:
             property_type = listing.find_element(By.CLASS_NAME, 'gallery-transtype').text
             lot_size = listing.find_element(By.CLASS_NAME, 'gallery-attr-item-value').text
 
-            # Locate the gallery photo section
-            gallery_photo = listing.find_element(By.CLASS_NAME, 'gallery-photo')
+            # Click on the listing to trigger the image load
+            driver.execute_script("arguments[0].scrollIntoView();", listing)
+            driver.execute_script("arguments[0].click();", listing)
 
-            # Find the <a> tag within the gallery-photo section
-            link_element = gallery_photo.find_element(By.XPATH, ".//a[contains(@href, '/pl-pl/oferty')]")
+            # Wait for the image to be fully loaded
+            WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@class='gallery-photo']//img[@src!='']")))
 
-            # Find the img tag within the link and filter out irrelevant images
-            image_element = link_element.find_element(By.TAG_NAME, 'img')
-            image_src = image_element.get_attribute('src')
+            # Extract image source and link to offer
+            image_container = listing.find_element(By.CLASS_NAME, 'gallery-photo')
+            image_src = image_container.find_element(By.TAG_NAME, 'img').get_attribute('src')
+            # Check if the image source is the placeholder video icon
+            if 'video-icon.svg' in image_src:
+                # If it's the video icon, get the data-src attribute which holds the actual image source
+                image_src = image_container.find_element(By.TAG_NAME, 'img').get_attribute('data-src')
+            link_to_offer = listing.find_element(By.TAG_NAME, 'a').get_attribute('href')
 
-            # Ensure the image source is not an icon
-            if 'remax.azureedge.net' in image_src and 'userimages' in image_src:
-                link_to_offer = link_element.get_attribute('href')
-
-                # Insert data into the database
-                c.execute("INSERT INTO listings VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                          (title, PLN, EUR, listing_type, property_type, lot_size, image_src, link_to_offer))
+            # Insert data into the database
+            c.execute("INSERT INTO listings VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                      (title, PLN, EUR, listing_type, property_type, lot_size, image_src, link_to_offer))
         except NoSuchElementException:
             pass  # Handle missing elements
         
