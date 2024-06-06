@@ -128,7 +128,7 @@ while True:
     driver.execute_script("arguments[0].click();", next_button)
 
     # Wait for the listings to be rendered after scrolling
-    time.sleep(10)  # Adjust the wait time as needed
+    time.sleep(20)  # Adjust the wait time as needed
 
 # Close the browser
 driver.quit()
