@@ -39,7 +39,7 @@ driver.get(url)
 # Function to accept cookies
 def accept_cookies():
     try:
-        cookie_banner = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'CybotCookiebotDialog')))
+        cookie_banner = WebDriverWait(driver, 30).until(EC.visibility_of_element_located((By.ID, 'CybotCookiebotDialog')))
         accept_button = driver.find_element(By.ID, 'CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll')
         
         # Scroll to the accept button
@@ -52,7 +52,7 @@ def accept_cookies():
             time.sleep(1)
             accept_button.click()
         
-        WebDriverWait(driver, 10).until(EC.invisibility_of_element_located((By.ID, 'CybotCookiebotDialog')))
+        WebDriverWait(driver, 30).until(EC.invisibility_of_element_located((By.ID, 'CybotCookiebotDialog')))
     except TimeoutException:
         pass
 
@@ -60,7 +60,7 @@ def accept_cookies():
 accept_cookies()
 
 # Wait for the listings to be rendered
-time.sleep(20)  # Adjust the wait time as needed
+time.sleep(30)  # Adjust the wait time as needed
 
 # Scraping loop
 while True:
@@ -83,7 +83,7 @@ while True:
             driver.execute_script("arguments[0].click();", listing)
 
             # Wait for the image to be fully loaded
-            WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@class='gallery-photo']//img[@src!='']")))
+            WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//div[@class='gallery-photo']//img[@src!='']")))
 
             # Extract image source and link to offer
             image_container = listing.find_element(By.CLASS_NAME, 'gallery-photo')
@@ -128,7 +128,7 @@ while True:
     driver.execute_script("arguments[0].click();", next_button)
 
     # Wait for the listings to be rendered after scrolling
-    time.sleep(20)  # Adjust the wait time as needed
+    time.sleep(30)  # Adjust the wait time as needed
 
 # Close the browser
 driver.quit()
