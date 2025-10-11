@@ -8,11 +8,11 @@ import sqlite3
 import time
 from selenium.webdriver.chrome.options import Options
 import os
+from webdriver_manager.chrome import ChromeDriverManager
 
-# Use manual ChromeDriver path (webdriver-manager has issues with corrupted downloads)
-chrome_driver_path = r"chromedriver.exe" if os.name == 'nt' else "/usr/local/bin/chromedriver"
-service = Service(chrome_driver_path)
-print(f"✓ Using manual ChromeDriver path: {chrome_driver_path}")
+# Use webdriver-manager to automatically download and manage ChromeDriver
+service = Service(ChromeDriverManager().install())
+print("✓ Using webdriver-manager to automatically manage ChromeDriver")
 
 # Initialize Chrome WebDriver with headless option
 chrome_options = Options()
@@ -21,6 +21,9 @@ chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument('--disable-dev-shm-usage')
 chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument('--remote-debugging-port=9222')
+chrome_options.add_argument('--disable-extensions')
+chrome_options.add_argument('--disable-plugins')
+chrome_options.add_argument('--window-size=1920,1080')
 driver = webdriver.Chrome(service=service, options=chrome_options)
 
 # Connect to SQLite database
