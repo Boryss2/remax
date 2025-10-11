@@ -13,178 +13,74 @@ import glob
 
 # Function to get ChromeDriver path with fallback
 def get_chromedriver_path():
+    # Skip webdriver-manager entirely and go straight to direct download
+    # since it's been unreliable and downloading text files
+    print("🔄 Skipping webdriver-manager, downloading chromedriver directly from Google...")
+    
     try:
-        # Try webdriver-manager first
-        driver_path = ChromeDriverManager().install()
-        print(f"✓ webdriver-manager downloaded to: {driver_path}")
+        import requests
+        import zipfile
+        import tempfile
         
-        # Check if the downloaded file is actually executable AND a binary
-        if os.path.exists(driver_path) and os.access(driver_path, os.X_OK):
-            # Verify it's actually a binary file, not a text file
-            try:
-                with open(driver_path, 'rb') as f:
-                    first_bytes = f.read(4)
-                    # Check if it starts with ELF magic number (Linux binary)
-                    if first_bytes.startswith(b'\x7fELF'):
-                        print(f"✓ Using webdriver-manager executable (ELF binary): {driver_path}")
-                        return driver_path
-                    # Check if it starts with MZ (Windows PE binary)
-                    elif first_bytes.startswith(b'MZ'):
-                        print(f"✓ Using webdriver-manager executable (PE binary): {driver_path}")
-                        return driver_path
-                    else:
-                        print(f"⚠️ Downloaded file is not a binary executable: {driver_path}")
-                        # Continue to search for actual binary
-            except Exception as e:
-                print(f"⚠️ Error reading downloaded file {driver_path}: {e}")
-                # Continue to search for actual binary
-        else:
-            print("⚠️ Downloaded file is not executable, searching for chromedriver binary...")
-            
-            # Get the base directory where webdriver-manager downloaded files
-            base_dir = os.path.dirname(driver_path)
-            print(f"Searching in directory: {base_dir}")
-            
-            # Search recursively for chromedriver executable
-            for root, dirs, files in os.walk(base_dir):
-                for file in files:
-                    # Look specifically for "chromedriver" executable (not chromedriver-related files)
-                    if file == "chromedriver":
-                        full_path = os.path.join(root, file)
-                        print(f"Found potential chromedriver: {full_path}")
-                        
-                        # Check if it's executable
-                        if os.access(full_path, os.X_OK):
-                            # Additional check: try to read first few bytes to verify it's a binary
-                            try:
-                                with open(full_path, 'rb') as f:
-                                    first_bytes = f.read(4)
-                                    # Check if it starts with ELF magic number (Linux binary)
-                                    if first_bytes.startswith(b'\x7fELF'):
-                                        print(f"✓ Found executable chromedriver (ELF binary): {full_path}")
-                                        return full_path
-                                    # Check if it starts with MZ (Windows PE binary)
-                                    elif first_bytes.startswith(b'MZ'):
-                                        print(f"✓ Found executable chromedriver (PE binary): {full_path}")
-                                        return full_path
-                                    else:
-                                        print(f"⚠️ File is not a binary executable: {full_path}")
-                                        continue
-                            except Exception as e:
-                                print(f"⚠️ Error reading file {full_path}: {e}")
-                                continue
-            
-            # If no executable found in download directory, try parent directories
-            current_dir = base_dir
-            for _ in range(3):  # Go up 3 levels max
-                parent_dir = os.path.dirname(current_dir)
-                if parent_dir == current_dir:  # Reached root
-                    break
-                    
-                print(f"Searching in parent directory: {parent_dir}")
-                chromedriver_files = glob.glob(os.path.join(parent_dir, "chromedriver"))
-                
-                for file in chromedriver_files:
-                    if os.access(file, os.X_OK):
-                        # Additional check: try to read first few bytes to verify it's a binary
-                        try:
-                            with open(file, 'rb') as f:
-                                first_bytes = f.read(4)
-                                # Check if it starts with ELF magic number (Linux binary)
-                                if first_bytes.startswith(b'\x7fELF'):
-                                    print(f"✓ Found executable chromedriver in parent dir (ELF binary): {file}")
-                                    return file
-                                # Check if it starts with MZ (Windows PE binary)
-                                elif first_bytes.startswith(b'MZ'):
-                                    print(f"✓ Found executable chromedriver in parent dir (PE binary): {file}")
-                                    return file
-                                else:
-                                    print(f"⚠️ File in parent dir is not a binary executable: {file}")
-                                    continue
-                        except Exception as e:
-                            print(f"⚠️ Error reading file {file}: {e}")
-                            continue
-                
-                current_dir = parent_dir
-            
-            raise Exception("No executable chromedriver found in download directories")
-            
-    except Exception as e:
-        print(f"⚠️ webdriver-manager search failed: {e}")
-        # Don't use system chromedriver as it may be incompatible
-        # Instead, try to manually download the correct version
-        print("⚠️ System chromedriver may be incompatible, attempting manual download...")
+        # Download chromedriver directly from Google's repository
+        url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_140"
+        response = requests.get(url)
+        version = response.text.strip()
         
-        try:
-            # Force webdriver-manager to download specific version
-            from webdriver_manager.core.utils import ChromeType
-            driver_path = ChromeDriverManager(chrome_type=ChromeType.GOOGLE).install()
-            print(f"✓ Manual download successful: {driver_path}")
+        download_url = f"https://chromedriver.storage.googleapis.com/{version}/chromedriver_linux64.zip"
+        print(f"Downloading chromedriver {version} from: {download_url}")
+        
+        with tempfile.TemporaryDirectory() as temp_dir:
+            zip_path = os.path.join(temp_dir, "chromedriver.zip")
+            response = requests.get(download_url)
+            with open(zip_path, 'wb') as f:
+                f.write(response.content)
+            
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                zip_ref.extractall(temp_dir)
+            
+            chromedriver_path = os.path.join(temp_dir, "chromedriver")
+            os.chmod(chromedriver_path, 0o755)  # Make executable
             
             # Verify it's a binary
-            if os.path.exists(driver_path) and os.access(driver_path, os.X_OK):
-                with open(driver_path, 'rb') as f:
-                    first_bytes = f.read(4)
-                    if first_bytes.startswith(b'\x7fELF') or first_bytes.startswith(b'MZ'):
-                        print(f"✓ Using manual download binary: {driver_path}")
-                        return driver_path
+            with open(chromedriver_path, 'rb') as f:
+                first_bytes = f.read(4)
+                if first_bytes.startswith(b'\x7fELF') or first_bytes.startswith(b'MZ'):
+                    print(f"✓ Direct download successful (binary verified): {chromedriver_path}")
+                    return chromedriver_path
+                else:
+                    raise Exception("Downloaded file is not a binary executable")
+                    
+    except Exception as direct_error:
+        print(f"⚠️ Direct download failed: {direct_error}")
+        
+        # Last resort: try webdriver-manager
+        try:
+            print("🔄 Trying webdriver-manager as fallback...")
+            driver_path = ChromeDriverManager().install()
+            print(f"✓ webdriver-manager downloaded to: {driver_path}")
             
-            # If manual download also fails, search in its directory
+            # Search for actual chromedriver binary in the download directory
             base_dir = os.path.dirname(driver_path)
-            print(f"Searching manual download directory: {base_dir}")
             for root, dirs, files in os.walk(base_dir):
                 for file in files:
                     if file == "chromedriver":
                         full_path = os.path.join(root, file)
-                        print(f"Found potential chromedriver in manual download: {full_path}")
                         if os.access(full_path, os.X_OK):
                             with open(full_path, 'rb') as f:
                                 first_bytes = f.read(4)
                                 if first_bytes.startswith(b'\x7fELF') or first_bytes.startswith(b'MZ'):
-                                    print(f"✓ Found chromedriver binary: {full_path}")
+                                    print(f"✓ Found chromedriver binary via webdriver-manager: {full_path}")
                                     return full_path
             
-            raise Exception("Manual download also failed")
+            raise Exception("No binary found in webdriver-manager download")
             
-        except Exception as manual_error:
-            print(f"⚠️ Manual download failed: {manual_error}")
-            
-            # Try direct download from Google's repository
-            try:
-                print("🔄 Attempting direct download from Google's chromedriver repository...")
-                import requests
-                import zipfile
-                import tempfile
-                
-                # Download chromedriver directly
-                url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_140"
-                response = requests.get(url)
-                version = response.text.strip()
-                
-                download_url = f"https://chromedriver.storage.googleapis.com/{version}/chromedriver_linux64.zip"
-                print(f"Downloading chromedriver {version} from: {download_url}")
-                
-                with tempfile.TemporaryDirectory() as temp_dir:
-                    zip_path = os.path.join(temp_dir, "chromedriver.zip")
-                    response = requests.get(download_url)
-                    with open(zip_path, 'wb') as f:
-                        f.write(response.content)
-                    
-                    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                        zip_ref.extractall(temp_dir)
-                    
-                    chromedriver_path = os.path.join(temp_dir, "chromedriver")
-                    os.chmod(chromedriver_path, 0o755)  # Make executable
-                    
-                    print(f"✓ Direct download successful: {chromedriver_path}")
-                    return chromedriver_path
-                    
-            except Exception as direct_error:
-                print(f"⚠️ Direct download failed: {direct_error}")
-                # Don't use system chromedriver - it's incompatible
-                print("❌ Cannot use system chromedriver due to version incompatibility")
-                print("❌ Chrome 140 requires chromedriver 140, but system has chromedriver 131")
-                raise Exception("No compatible chromedriver found. System chromedriver (131) is incompatible with Chrome 140")
+        except Exception as wdm_error:
+            print(f"⚠️ webdriver-manager fallback failed: {wdm_error}")
+            # Don't use system chromedriver - it's incompatible
+            print("❌ Cannot use system chromedriver due to version incompatibility")
+            print("❌ Chrome 140 requires chromedriver 140, but system has chromedriver 131")
+            raise Exception("No compatible chromedriver found. System chromedriver (131) is incompatible with Chrome 140")
 
 # Get ChromeDriver path with fallback
 chrome_driver_path = get_chromedriver_path()
