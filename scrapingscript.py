@@ -9,10 +9,55 @@ import time
 from selenium.webdriver.chrome.options import Options
 import os
 from webdriver_manager.chrome import ChromeDriverManager
+import glob
 
-# Use webdriver-manager to automatically download and manage ChromeDriver
-service = Service(ChromeDriverManager().install())
-print("✓ Using webdriver-manager to automatically manage ChromeDriver")
+# Function to get ChromeDriver path with fallback
+def get_chromedriver_path():
+    try:
+        # Try webdriver-manager first
+        driver_path = ChromeDriverManager().install()
+        print(f"✓ Using webdriver-manager: {driver_path}")
+        
+        # Check if the downloaded file is actually executable
+        if os.path.exists(driver_path) and os.access(driver_path, os.X_OK):
+            return driver_path
+        else:
+            print("⚠️ Downloaded file is not executable, looking for chromedriver binary...")
+            
+            # Look for chromedriver binary in the same directory
+            driver_dir = os.path.dirname(driver_path)
+            chromedriver_files = glob.glob(os.path.join(driver_dir, "chromedriver*"))
+            
+            for file in chromedriver_files:
+                if os.access(file, os.X_OK) and not file.endswith('.txt'):
+                    print(f"✓ Found executable chromedriver: {file}")
+                    return file
+            
+            # If no executable found, try the parent directory
+            parent_dir = os.path.dirname(driver_dir)
+            chromedriver_files = glob.glob(os.path.join(parent_dir, "chromedriver*"))
+            
+            for file in chromedriver_files:
+                if os.access(file, os.X_OK) and not file.endswith('.txt'):
+                    print(f"✓ Found executable chromedriver in parent dir: {file}")
+                    return file
+            
+            raise Exception("No executable chromedriver found")
+            
+    except Exception as e:
+        print(f"⚠️ webdriver-manager failed: {e}")
+        # Fallback to system chromedriver
+        system_paths = ["/usr/local/bin/chromedriver", "/usr/bin/chromedriver", "chromedriver"]
+        for path in system_paths:
+            if os.path.exists(path) and os.access(path, os.X_OK):
+                print(f"✓ Using system chromedriver: {path}")
+                return path
+        
+        raise Exception("No chromedriver found in system paths")
+
+# Get ChromeDriver path with fallback
+chrome_driver_path = get_chromedriver_path()
+service = Service(chrome_driver_path)
 
 # Initialize Chrome WebDriver with headless option
 chrome_options = Options()
