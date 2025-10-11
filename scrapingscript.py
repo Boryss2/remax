@@ -36,7 +36,7 @@ c.execute('''CREATE TABLE IF NOT EXISTS listings
              (title TEXT, PLN TEXT, EUR TEXT, listing_type TEXT, property_type TEXT, lot_size TEXT, image_src TEXT, link_to_offer TEXT)''')
 
 # URL of the website
-base_url = 'https://www.remax-polska.pl/PublicListingList.aspx?SelectedCountryID=47#mode=gallery&cur=PLN&sb=PriceDecreasing&page=1&sc=47&sid=56ec9c63-76d3-4376-86c3-e70a93dd7f63&oid=81029'
+base_url = 'https://www.remax-polska.pl/listings?ListingClass=-1&TransactionTypeUID=-1&OfficeID=81029'
 
 # Load the first page
 page_number = 1
