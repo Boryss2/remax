@@ -85,6 +85,27 @@ jobs:
       - name: Run scraping script
         run: python scrapingscript.py
 
+      - name: Check database and files
+        run: |
+          echo "Checking if database exists and has data:"
+          if [ -f listings.db ]; then
+            echo "Database file exists"
+            sqlite3 listings.db "SELECT COUNT(*) FROM listings;" || echo "No listings table or error"
+            sqlite3 listings.db "SELECT title FROM listings LIMIT 5;" || echo "No data in listings"
+          else
+            echo "Database file does not exist!"
+          fi
+          
+          echo "Checking current directory contents:"
+          ls -la
+          
+          echo "Checking if index.html exists:"
+          if [ -f index.html ]; then
+            echo "index.html exists"
+          else
+            echo "index.html does not exist!"
+          fi
+
       - name: Generate static site
         run: python generate_static_site.py
 
@@ -92,6 +113,13 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          # Check if there are any changes to commit
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          
           git add listings.db index.html .nojekyll
           git commit -m 'Update listings.db and static site with new scraped data'
           git push
