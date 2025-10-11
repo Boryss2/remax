@@ -126,14 +126,17 @@ def get_chromedriver_path():
                 with open(driver_path, 'rb') as f:
                     first_bytes = f.read(4)
                     if first_bytes.startswith(b'\x7fELF') or first_bytes.startswith(b'MZ'):
+                        print(f"✓ Using manual download binary: {driver_path}")
                         return driver_path
             
             # If manual download also fails, search in its directory
             base_dir = os.path.dirname(driver_path)
+            print(f"Searching manual download directory: {base_dir}")
             for root, dirs, files in os.walk(base_dir):
                 for file in files:
                     if file == "chromedriver":
                         full_path = os.path.join(root, file)
+                        print(f"Found potential chromedriver in manual download: {full_path}")
                         if os.access(full_path, os.X_OK):
                             with open(full_path, 'rb') as f:
                                 first_bytes = f.read(4)
@@ -145,14 +148,43 @@ def get_chromedriver_path():
             
         except Exception as manual_error:
             print(f"⚠️ Manual download failed: {manual_error}")
-            # Last resort: try system chromedriver but warn about compatibility
-            system_paths = ["/usr/local/bin/chromedriver", "/usr/bin/chromedriver", "chromedriver"]
-            for path in system_paths:
-                if os.path.exists(path) and os.access(path, os.X_OK):
-                    print(f"⚠️ Using system chromedriver (may be incompatible): {path}")
-                    return path
             
-            raise Exception("No chromedriver found anywhere")
+            # Try direct download from Google's repository
+            try:
+                print("🔄 Attempting direct download from Google's chromedriver repository...")
+                import requests
+                import zipfile
+                import tempfile
+                
+                # Download chromedriver directly
+                url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_140"
+                response = requests.get(url)
+                version = response.text.strip()
+                
+                download_url = f"https://chromedriver.storage.googleapis.com/{version}/chromedriver_linux64.zip"
+                print(f"Downloading chromedriver {version} from: {download_url}")
+                
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    zip_path = os.path.join(temp_dir, "chromedriver.zip")
+                    response = requests.get(download_url)
+                    with open(zip_path, 'wb') as f:
+                        f.write(response.content)
+                    
+                    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                        zip_ref.extractall(temp_dir)
+                    
+                    chromedriver_path = os.path.join(temp_dir, "chromedriver")
+                    os.chmod(chromedriver_path, 0o755)  # Make executable
+                    
+                    print(f"✓ Direct download successful: {chromedriver_path}")
+                    return chromedriver_path
+                    
+            except Exception as direct_error:
+                print(f"⚠️ Direct download failed: {direct_error}")
+                # Don't use system chromedriver - it's incompatible
+                print("❌ Cannot use system chromedriver due to version incompatibility")
+                print("❌ Chrome 140 requires chromedriver 140, but system has chromedriver 131")
+                raise Exception("No compatible chromedriver found. System chromedriver (131) is incompatible with Chrome 140")
 
 # Get ChromeDriver path with fallback
 chrome_driver_path = get_chromedriver_path()
