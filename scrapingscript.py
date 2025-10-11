@@ -41,9 +41,29 @@ def get_chromedriver_path():
                             not file.endswith('.txt') and 
                             not file.endswith('.md') and
                             not file.endswith('.notice') and
-                            not file.endswith('.NOTICE')):
-                            print(f"✓ Found executable chromedriver: {full_path}")
-                            return full_path
+                            not file.endswith('.NOTICE') and
+                            not 'THIRD_PARTY' in file and
+                            not 'LICENSE' in file and
+                            not 'README' in file):
+                            
+                            # Additional check: try to read first few bytes to verify it's a binary
+                            try:
+                                with open(full_path, 'rb') as f:
+                                    first_bytes = f.read(4)
+                                    # Check if it starts with ELF magic number (Linux binary)
+                                    if first_bytes.startswith(b'\x7fELF'):
+                                        print(f"✓ Found executable chromedriver (ELF binary): {full_path}")
+                                        return full_path
+                                    # Check if it starts with MZ (Windows PE binary)
+                                    elif first_bytes.startswith(b'MZ'):
+                                        print(f"✓ Found executable chromedriver (PE binary): {full_path}")
+                                        return full_path
+                                    else:
+                                        print(f"⚠️ File is not a binary executable: {full_path}")
+                                        continue
+                            except Exception as e:
+                                print(f"⚠️ Error reading file {full_path}: {e}")
+                                continue
             
             # If no executable found in download directory, try parent directories
             current_dir = base_dir
@@ -60,9 +80,29 @@ def get_chromedriver_path():
                         not file.endswith('.txt') and 
                         not file.endswith('.md') and
                         not file.endswith('.notice') and
-                        not file.endswith('.NOTICE')):
-                        print(f"✓ Found executable chromedriver in parent dir: {file}")
-                        return file
+                        not file.endswith('.NOTICE') and
+                        not 'THIRD_PARTY' in file and
+                        not 'LICENSE' in file and
+                        not 'README' in file):
+                        
+                        # Additional check: try to read first few bytes to verify it's a binary
+                        try:
+                            with open(file, 'rb') as f:
+                                first_bytes = f.read(4)
+                                # Check if it starts with ELF magic number (Linux binary)
+                                if first_bytes.startswith(b'\x7fELF'):
+                                    print(f"✓ Found executable chromedriver in parent dir (ELF binary): {file}")
+                                    return file
+                                # Check if it starts with MZ (Windows PE binary)
+                                elif first_bytes.startswith(b'MZ'):
+                                    print(f"✓ Found executable chromedriver in parent dir (PE binary): {file}")
+                                    return file
+                                else:
+                                    print(f"⚠️ File in parent dir is not a binary executable: {file}")
+                                    continue
+                        except Exception as e:
+                            print(f"⚠️ Error reading file {file}: {e}")
+                            continue
                 
                 current_dir = parent_dir
             
