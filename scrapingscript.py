@@ -9,14 +9,10 @@ import time
 from selenium.webdriver.chrome.options import Options
 import os
 
-# Try to use webdriver-manager for automatic ChromeDriver management
-try:
-    from webdriver_manager.chrome import ChromeDriverManager
-    service = Service(ChromeDriverManager().install())
-except ImportError:
-    # Fallback to manual ChromeDriver path
-    chrome_driver_path = r"chromedriver.exe" if os.name == 'nt' else "/usr/local/bin/chromedriver"
-    service = Service(chrome_driver_path)
+# Use manual ChromeDriver path (webdriver-manager has issues with corrupted downloads)
+chrome_driver_path = r"chromedriver.exe" if os.name == 'nt' else "/usr/local/bin/chromedriver"
+service = Service(chrome_driver_path)
+print(f"✓ Using manual ChromeDriver path: {chrome_driver_path}")
 
 # Initialize Chrome WebDriver with headless option
 chrome_options = Options()
@@ -67,78 +63,109 @@ def accept_cookies():
 accept_cookies()
 
 # Wait for the listings to be rendered
-time.sleep(30)  # Adjust the wait time as needed
+print("Waiting for listings to load...")
+time.sleep(10)  # Reduced wait time for faster execution
 
 # Scraping loop
+page_count = 0
 while True:
-    # Find all gallery item containers
-    listings = driver.find_elements(By.CLASS_NAME, 'gallery-item-container')
+    page_count += 1
+    print(f"Scraping page {page_count}...")
+    
+    # Find all listing card containers using new Material-UI structure
+    listings = driver.find_elements(By.CSS_SELECTOR, '.MuiGrid-item .listing-card')
+    print(f"Found {len(listings)} listings on page {page_count}")
 
     # Loop through the listings and extract data
-    for listing in listings:
+    for i, listing in enumerate(listings):
         try:
-            # Extract data from each listing
-            title = listing.find_element(By.CLASS_NAME, 'gallery-title').text
-            PLN = listing.find_element(By.CLASS_NAME, 'proplist_price').text
-            EUR = listing.find_element(By.CLASS_NAME, 'proplist_price_alt').text
-            listing_type = listing.find_element(By.CLASS_NAME, 'card-trans-type').text
-            property_type = listing.find_element(By.CLASS_NAME, 'gallery-transtype').text
-            lot_size = listing.find_element(By.CLASS_NAME, 'gallery-attr-item-value').text
+            # Extract title from the link element
+            title_element = listing.find_element(By.CSS_SELECTOR, '.listing-info')
+            title = title_element.get_attribute('title')
+            
+            # Extract PLN price
+            try:
+                PLN_element = listing.find_element(By.CSS_SELECTOR, '.card-first-price')
+                PLN = PLN_element.text
+            except NoSuchElementException:
+                PLN = "N/A"
+            
+            # Extract EUR price
+            try:
+                EUR_element = listing.find_element(By.CSS_SELECTOR, '.MuiTypography-body2 span')
+                EUR = EUR_element.text
+            except NoSuchElementException:
+                EUR = "N/A"
+            
+            # Extract listing type (property type)
+            try:
+                listing_type_element = listing.find_element(By.CSS_SELECTOR, '.listing-type-address p:first-child')
+                listing_type = listing_type_element.text
+            except NoSuchElementException:
+                listing_type = "N/A"
+            
+            # Extract property type (same as listing type in new structure)
+            property_type = listing_type
+            
+            # Extract lot size (living area)
+            try:
+                lot_size_element = listing.find_element(By.CSS_SELECTOR, '[aria-label*="Pow. mieszkalna"] p')
+                lot_size = lot_size_element.text + " m²"
+            except NoSuchElementException:
+                lot_size = "N/A"
 
-            # Click on the listing to trigger the image load
-            driver.execute_script("arguments[0].scrollIntoView();", listing)
-            driver.execute_script("arguments[0].click();", listing)
+            # Extract image source from the gallery
+            try:
+                # Find the first visible image in the gallery
+                image_element = listing.find_element(By.CSS_SELECTOR, '.image-gallery-slide img[src]')
+                image_src = image_element.get_attribute('src')
+            except NoSuchElementException:
+                image_src = "N/A"
 
-            # Wait for the image to be fully loaded
-            WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//div[@class='gallery-photo']//img[@src!='']")))
-
-            # Extract image source and link to offer
-            image_container = listing.find_element(By.CLASS_NAME, 'gallery-photo')
-            image_elements = image_container.find_elements(By.TAG_NAME, 'img')
-
-            # Initialize image source
-            image_src = ""
-
-            # Loop through image elements to find the correct source
-            for img in image_elements:
-                img_src = img.get_attribute('src')
-                if 'video-icon.svg' not in img_src:
-                    image_src = img_src
-                    break
-
-            # If no image source found yet, take the last image source
-            if not image_src and image_elements:
-                image_src = image_elements[-1].get_attribute('src')
-
-            link_to_offer = listing.find_element(By.TAG_NAME, 'a').get_attribute('href')
-
+            # Extract link to offer
+            link_to_offer = title_element.get_attribute('href')
 
             # Insert data into the database
             c.execute("INSERT INTO listings VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                       (title, PLN, EUR, listing_type, property_type, lot_size, image_src, link_to_offer))
-        except NoSuchElementException:
+            print(f"  Processed listing {i+1}: {title}")
+        except NoSuchElementException as e:
+            print(f"  Skipped listing {i+1}: Missing element - {str(e)}")
             pass  # Handle missing elements
         
     # Commit changes to the database
     conn.commit()
 
-    # Check if there's a next page
+    # Check if there's a next page using new Material-UI pagination
     try:
-        next_button = driver.find_element(By.XPATH, "//li[@class='active']/following-sibling::li/a[@class='ajax-page-link']")
+        # Look for the next page button with NavigateNextIcon
+        next_button = driver.find_element(By.CSS_SELECTOR, 'button[aria-label="Go to next page"]')
+        
+        # Check if the button is disabled (no more pages)
+        if next_button.get_attribute('disabled'):
+            print("No more pages available. Scraping completed.")
+            break
     except NoSuchElementException:
+        print("No next page button found. Scraping completed.")
         break  # Break the loop if there's no next page
 
+    print(f"Moving to page {page_count + 1}...")
+    
     # Scroll to the next button to bring it into view
     driver.execute_script("arguments[0].scrollIntoView();", next_button)
+    time.sleep(2)  # Brief wait for scroll
 
     # Click on the next page button
     driver.execute_script("arguments[0].click();", next_button)
 
-    # Wait for the listings to be rendered after scrolling
-    time.sleep(30)  # Adjust the wait time as needed
+    # Wait for the listings to be rendered after clicking
+    time.sleep(10)  # Reduced wait time since we're not scrolling through images anymore
 
 # Close the browser
 driver.quit()
 
 # Close the database connection
 conn.close()
+
+print(f"Scraping completed! Total pages processed: {page_count}")
+print("Database updated with new listings.")
