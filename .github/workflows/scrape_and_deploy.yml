@@ -40,7 +40,7 @@ jobs:
           if [ -f "chrome-headless-shell-linux64.zip" ]; then
             rm chrome-headless-shell-linux64.zip
           fi
-          wget https://storage.googleapis.com/chrome-for-testing-public/141.0.7390.76/linux64/chrome-headless-shell-linux64.zip
+          wget https://storage.googleapis.com/chrome-for-testing-public/140.0.7339.207/linux64/chrome-headless-shell-linux64.zip
           unzip chrome-headless-shell-linux64.zip -d chrome
           sudo mv chrome/chrome-headless-shell-linux64/* /usr/local/bin/
           sudo ln -s /usr/local/bin/headless_shell /usr/local/bin/google-chrome
@@ -55,7 +55,7 @@ jobs:
           if [ -f "chromedriver-linux64.zip" ]; then
             rm chromedriver-linux64.zip
           fi
-          wget https://storage.googleapis.com/chrome-for-testing-public/141.0.7390.76/linux64/chromedriver-linux64.zip
+          wget https://storage.googleapis.com/chrome-for-testing-public/140.0.7339.207/linux64/chromedriver-linux64.zip
           unzip chromedriver-linux64.zip -d chromedriver
           sudo mv chromedriver/chromedriver-linux64/chromedriver /usr/local/bin/
           sudo chmod +x /usr/local/bin/chromedriver
