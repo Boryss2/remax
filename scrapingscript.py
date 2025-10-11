@@ -48,20 +48,13 @@ def get_chromedriver_path():
             # Search recursively for chromedriver executable
             for root, dirs, files in os.walk(base_dir):
                 for file in files:
-                    if file == "chromedriver" or file.startswith("chromedriver"):
+                    # Look specifically for "chromedriver" executable (not chromedriver-related files)
+                    if file == "chromedriver":
                         full_path = os.path.join(root, file)
                         print(f"Found potential chromedriver: {full_path}")
                         
-                        # Check if it's executable and not a text file
-                        if (os.access(full_path, os.X_OK) and 
-                            not file.endswith('.txt') and 
-                            not file.endswith('.md') and
-                            not file.endswith('.notice') and
-                            not file.endswith('.NOTICE') and
-                            not 'THIRD_PARTY' in file and
-                            not 'LICENSE' in file and
-                            not 'README' in file):
-                            
+                        # Check if it's executable
+                        if os.access(full_path, os.X_OK):
                             # Additional check: try to read first few bytes to verify it's a binary
                             try:
                                 with open(full_path, 'rb') as f:
@@ -89,18 +82,10 @@ def get_chromedriver_path():
                     break
                     
                 print(f"Searching in parent directory: {parent_dir}")
-                chromedriver_files = glob.glob(os.path.join(parent_dir, "chromedriver*"))
+                chromedriver_files = glob.glob(os.path.join(parent_dir, "chromedriver"))
                 
                 for file in chromedriver_files:
-                    if (os.access(file, os.X_OK) and 
-                        not file.endswith('.txt') and 
-                        not file.endswith('.md') and
-                        not file.endswith('.notice') and
-                        not file.endswith('.NOTICE') and
-                        not 'THIRD_PARTY' in file and
-                        not 'LICENSE' in file and
-                        not 'README' in file):
-                        
+                    if os.access(file, os.X_OK):
                         # Additional check: try to read first few bytes to verify it's a binary
                         try:
                             with open(file, 'rb') as f:
@@ -126,14 +111,48 @@ def get_chromedriver_path():
             
     except Exception as e:
         print(f"⚠️ webdriver-manager search failed: {e}")
-        # Fallback to system chromedriver
-        system_paths = ["/usr/local/bin/chromedriver", "/usr/bin/chromedriver", "chromedriver"]
-        for path in system_paths:
-            if os.path.exists(path) and os.access(path, os.X_OK):
-                print(f"✓ Using system chromedriver: {path}")
-                return path
+        # Don't use system chromedriver as it may be incompatible
+        # Instead, try to manually download the correct version
+        print("⚠️ System chromedriver may be incompatible, attempting manual download...")
         
-        raise Exception("No chromedriver found in system paths")
+        try:
+            # Force webdriver-manager to download specific version
+            from webdriver_manager.core.utils import ChromeType
+            driver_path = ChromeDriverManager(chrome_type=ChromeType.GOOGLE).install()
+            print(f"✓ Manual download successful: {driver_path}")
+            
+            # Verify it's a binary
+            if os.path.exists(driver_path) and os.access(driver_path, os.X_OK):
+                with open(driver_path, 'rb') as f:
+                    first_bytes = f.read(4)
+                    if first_bytes.startswith(b'\x7fELF') or first_bytes.startswith(b'MZ'):
+                        return driver_path
+            
+            # If manual download also fails, search in its directory
+            base_dir = os.path.dirname(driver_path)
+            for root, dirs, files in os.walk(base_dir):
+                for file in files:
+                    if file == "chromedriver":
+                        full_path = os.path.join(root, file)
+                        if os.access(full_path, os.X_OK):
+                            with open(full_path, 'rb') as f:
+                                first_bytes = f.read(4)
+                                if first_bytes.startswith(b'\x7fELF') or first_bytes.startswith(b'MZ'):
+                                    print(f"✓ Found chromedriver binary: {full_path}")
+                                    return full_path
+            
+            raise Exception("Manual download also failed")
+            
+        except Exception as manual_error:
+            print(f"⚠️ Manual download failed: {manual_error}")
+            # Last resort: try system chromedriver but warn about compatibility
+            system_paths = ["/usr/local/bin/chromedriver", "/usr/bin/chromedriver", "chromedriver"]
+            for path in system_paths:
+                if os.path.exists(path) and os.access(path, os.X_OK):
+                    print(f"⚠️ Using system chromedriver (may be incompatible): {path}")
+                    return path
+            
+            raise Exception("No chromedriver found anywhere")
 
 # Get ChromeDriver path with fallback
 chrome_driver_path = get_chromedriver_path()
