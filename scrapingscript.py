@@ -16,36 +16,60 @@ def get_chromedriver_path():
     try:
         # Try webdriver-manager first
         driver_path = ChromeDriverManager().install()
-        print(f"✓ Using webdriver-manager: {driver_path}")
+        print(f"✓ webdriver-manager downloaded to: {driver_path}")
         
         # Check if the downloaded file is actually executable
         if os.path.exists(driver_path) and os.access(driver_path, os.X_OK):
+            print(f"✓ Using webdriver-manager executable: {driver_path}")
             return driver_path
         else:
-            print("⚠️ Downloaded file is not executable, looking for chromedriver binary...")
+            print("⚠️ Downloaded file is not executable, searching for chromedriver binary...")
             
-            # Look for chromedriver binary in the same directory
-            driver_dir = os.path.dirname(driver_path)
-            chromedriver_files = glob.glob(os.path.join(driver_dir, "chromedriver*"))
+            # Get the base directory where webdriver-manager downloaded files
+            base_dir = os.path.dirname(driver_path)
+            print(f"Searching in directory: {base_dir}")
             
-            for file in chromedriver_files:
-                if os.access(file, os.X_OK) and not file.endswith('.txt'):
-                    print(f"✓ Found executable chromedriver: {file}")
-                    return file
+            # Search recursively for chromedriver executable
+            for root, dirs, files in os.walk(base_dir):
+                for file in files:
+                    if file == "chromedriver" or file.startswith("chromedriver"):
+                        full_path = os.path.join(root, file)
+                        print(f"Found potential chromedriver: {full_path}")
+                        
+                        # Check if it's executable and not a text file
+                        if (os.access(full_path, os.X_OK) and 
+                            not file.endswith('.txt') and 
+                            not file.endswith('.md') and
+                            not file.endswith('.notice') and
+                            not file.endswith('.NOTICE')):
+                            print(f"✓ Found executable chromedriver: {full_path}")
+                            return full_path
             
-            # If no executable found, try the parent directory
-            parent_dir = os.path.dirname(driver_dir)
-            chromedriver_files = glob.glob(os.path.join(parent_dir, "chromedriver*"))
+            # If no executable found in download directory, try parent directories
+            current_dir = base_dir
+            for _ in range(3):  # Go up 3 levels max
+                parent_dir = os.path.dirname(current_dir)
+                if parent_dir == current_dir:  # Reached root
+                    break
+                    
+                print(f"Searching in parent directory: {parent_dir}")
+                chromedriver_files = glob.glob(os.path.join(parent_dir, "chromedriver*"))
+                
+                for file in chromedriver_files:
+                    if (os.access(file, os.X_OK) and 
+                        not file.endswith('.txt') and 
+                        not file.endswith('.md') and
+                        not file.endswith('.notice') and
+                        not file.endswith('.NOTICE')):
+                        print(f"✓ Found executable chromedriver in parent dir: {file}")
+                        return file
+                
+                current_dir = parent_dir
             
-            for file in chromedriver_files:
-                if os.access(file, os.X_OK) and not file.endswith('.txt'):
-                    print(f"✓ Found executable chromedriver in parent dir: {file}")
-                    return file
-            
-            raise Exception("No executable chromedriver found")
+            raise Exception("No executable chromedriver found in download directories")
             
     except Exception as e:
-        print(f"⚠️ webdriver-manager failed: {e}")
+        print(f"⚠️ webdriver-manager search failed: {e}")
         # Fallback to system chromedriver
         system_paths = ["/usr/local/bin/chromedriver", "/usr/bin/chromedriver", "chromedriver"]
         for path in system_paths:
