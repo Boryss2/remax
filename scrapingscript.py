@@ -32,6 +32,14 @@ def get_chromedriver_path():
         version = data['channels']['Stable']['version']
         print(f"Found Chrome version: {version}")
         
+        # Check if we have a cached chromedriver for this version
+        chromedriver_dir = os.path.join(os.getcwd(), "chromedriver_cache")
+        cached_chromedriver = os.path.join(chromedriver_dir, f"chromedriver_{version}")
+        
+        if os.path.exists(cached_chromedriver) and os.access(cached_chromedriver, os.X_OK):
+            print(f"✓ Using cached chromedriver for version {version}: {cached_chromedriver}")
+            return cached_chromedriver
+        
         # Find the chromedriver download URL for this version
         downloads = data['channels']['Stable']['downloads']['chromedriver']
         download_url = None
@@ -70,8 +78,8 @@ def get_chromedriver_path():
             if not chromedriver_path:
                 raise Exception("chromedriver executable not found in downloaded zip")
             
-            # Copy to persistent location
-            persistent_path = os.path.join(chromedriver_dir, "chromedriver")
+            # Copy to persistent location with version-specific name
+            persistent_path = os.path.join(chromedriver_dir, f"chromedriver_{version}")
             import shutil
             shutil.copy2(chromedriver_path, persistent_path)
             os.chmod(persistent_path, 0o755)  # Make executable
