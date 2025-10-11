@@ -44,6 +44,10 @@ def get_chromedriver_path():
             raise Exception(f"No chromedriver download URL found for version {version}")
         print(f"Downloading chromedriver {version} from: {download_url}")
         
+        # Create a persistent directory for chromedriver
+        chromedriver_dir = os.path.join(os.getcwd(), "chromedriver_cache")
+        os.makedirs(chromedriver_dir, exist_ok=True)
+        
         with tempfile.TemporaryDirectory() as temp_dir:
             zip_path = os.path.join(temp_dir, "chromedriver.zip")
             response = requests.get(download_url)
@@ -66,14 +70,18 @@ def get_chromedriver_path():
             if not chromedriver_path:
                 raise Exception("chromedriver executable not found in downloaded zip")
             
-            os.chmod(chromedriver_path, 0o755)  # Make executable
+            # Copy to persistent location
+            persistent_path = os.path.join(chromedriver_dir, "chromedriver")
+            import shutil
+            shutil.copy2(chromedriver_path, persistent_path)
+            os.chmod(persistent_path, 0o755)  # Make executable
             
             # Verify it's a binary
-            with open(chromedriver_path, 'rb') as f:
+            with open(persistent_path, 'rb') as f:
                 first_bytes = f.read(4)
                 if first_bytes.startswith(b'\x7fELF') or first_bytes.startswith(b'MZ'):
-                    print(f"✓ Direct download successful (binary verified): {chromedriver_path}")
-                    return chromedriver_path
+                    print(f"✓ Direct download successful (binary verified): {persistent_path}")
+                    return persistent_path
                 else:
                     raise Exception("Downloaded file is not a binary executable")
                     
