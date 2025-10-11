@@ -9,15 +9,22 @@ import time
 from selenium.webdriver.chrome.options import Options
 import os
 
-# Determine the ChromeDriver path based on the environment
-chrome_driver_path = r"chromedriver.exe" if os.name == 'nt' else "/usr/local/bin/chromedriver"
+# Try to use webdriver-manager for automatic ChromeDriver management
+try:
+    from webdriver_manager.chrome import ChromeDriverManager
+    service = Service(ChromeDriverManager().install())
+except ImportError:
+    # Fallback to manual ChromeDriver path
+    chrome_driver_path = r"chromedriver.exe" if os.name == 'nt' else "/usr/local/bin/chromedriver"
+    service = Service(chrome_driver_path)
 
 # Initialize Chrome WebDriver with headless option
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument('--disable-dev-shm-usage')
-service = Service(chrome_driver_path)
+chrome_options.add_argument('--disable-gpu')
+chrome_options.add_argument('--remote-debugging-port=9222')
 driver = webdriver.Chrome(service=service, options=chrome_options)
 
 # Connect to SQLite database
