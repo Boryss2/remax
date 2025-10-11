@@ -53,7 +53,19 @@ def get_chromedriver_path():
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                 zip_ref.extractall(temp_dir)
             
-            chromedriver_path = os.path.join(temp_dir, "chromedriver")
+            # Look for chromedriver executable in the extracted files
+            chromedriver_path = None
+            for root, dirs, files in os.walk(temp_dir):
+                for file in files:
+                    if file == "chromedriver":
+                        chromedriver_path = os.path.join(root, file)
+                        break
+                if chromedriver_path:
+                    break
+            
+            if not chromedriver_path:
+                raise Exception("chromedriver executable not found in downloaded zip")
+            
             os.chmod(chromedriver_path, 0o755)  # Make executable
             
             # Verify it's a binary
