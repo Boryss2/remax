@@ -2082,13 +2082,15 @@ input.qty-val {
 }
 
 .dot-style-1 ul {
-    display: -webkit-box;
+    display: none;
+
+/*    display: -webkit-box;
     display: -ms-flexbox;
-    display: flex;
+    display: flex;*/
 }
 
 .dot-style-1 ul li {
-    margin: 0 3px;
+    display: none
 }
 
 .dot-style-1 ul li button {
