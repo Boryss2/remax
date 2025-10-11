@@ -22,12 +22,26 @@ def get_chromedriver_path():
         import zipfile
         import tempfile
         
-        # Download chromedriver directly from Google's repository
-        url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_140"
+        # Download chromedriver directly from Google's Chrome for Testing repository
+        # Use the Chrome for Testing API to get the correct chromedriver version
+        url = "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json"
         response = requests.get(url)
-        version = response.text.strip()
+        data = response.json()
         
-        download_url = f"https://chromedriver.storage.googleapis.com/{version}/chromedriver_linux64.zip"
+        # Get the stable chromedriver version
+        version = data['channels']['Stable']['version']
+        print(f"Found Chrome version: {version}")
+        
+        # Find the chromedriver download URL for this version
+        downloads = data['channels']['Stable']['downloads']['chromedriver']
+        download_url = None
+        for download in downloads:
+            if download['platform'] == 'linux64':
+                download_url = download['url']
+                break
+        
+        if not download_url:
+            raise Exception(f"No chromedriver download URL found for version {version}")
         print(f"Downloading chromedriver {version} from: {download_url}")
         
         with tempfile.TemporaryDirectory() as temp_dir:
