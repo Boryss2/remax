@@ -18,10 +18,26 @@ def get_chromedriver_path():
         driver_path = ChromeDriverManager().install()
         print(f"✓ webdriver-manager downloaded to: {driver_path}")
         
-        # Check if the downloaded file is actually executable
+        # Check if the downloaded file is actually executable AND a binary
         if os.path.exists(driver_path) and os.access(driver_path, os.X_OK):
-            print(f"✓ Using webdriver-manager executable: {driver_path}")
-            return driver_path
+            # Verify it's actually a binary file, not a text file
+            try:
+                with open(driver_path, 'rb') as f:
+                    first_bytes = f.read(4)
+                    # Check if it starts with ELF magic number (Linux binary)
+                    if first_bytes.startswith(b'\x7fELF'):
+                        print(f"✓ Using webdriver-manager executable (ELF binary): {driver_path}")
+                        return driver_path
+                    # Check if it starts with MZ (Windows PE binary)
+                    elif first_bytes.startswith(b'MZ'):
+                        print(f"✓ Using webdriver-manager executable (PE binary): {driver_path}")
+                        return driver_path
+                    else:
+                        print(f"⚠️ Downloaded file is not a binary executable: {driver_path}")
+                        # Continue to search for actual binary
+            except Exception as e:
+                print(f"⚠️ Error reading downloaded file {driver_path}: {e}")
+                # Continue to search for actual binary
         else:
             print("⚠️ Downloaded file is not executable, searching for chromedriver binary...")
             
