@@ -28,9 +28,36 @@ def get_chromedriver_path():
         response = requests.get(url)
         data = response.json()
         
-        # Get the stable chromedriver version
-        version = data['channels']['Stable']['version']
-        print(f"Found Chrome version: {version}")
+        # Get the installed Chrome version from the system
+        try:
+            import subprocess
+            result = subprocess.run(['google-chrome', '--version'], capture_output=True, text=True)
+            if result.returncode == 0:
+                chrome_version = result.stdout.strip().split()[-1]
+                print(f"Found installed Chrome version: {chrome_version}")
+                
+                # Try to find chromedriver for this specific version
+                version = chrome_version
+                
+                # Check if this version exists in the downloads
+                downloads = data['channels']['Stable']['downloads']['chromedriver']
+                download_url = None
+                for download in downloads:
+                    if download['platform'] == 'linux64' and chrome_version in download['url']:
+                        download_url = download['url']
+                        break
+                
+                if not download_url:
+                    print(f"No chromedriver found for Chrome {chrome_version}, using stable version")
+                    version = data['channels']['Stable']['version']
+                else:
+                    print(f"Found matching chromedriver for Chrome {chrome_version}")
+            else:
+                version = data['channels']['Stable']['version']
+                print(f"Could not detect Chrome version, using stable: {version}")
+        except Exception as e:
+            version = data['channels']['Stable']['version']
+            print(f"Error detecting Chrome version: {e}, using stable: {version}")
         
         # Check if we have a cached chromedriver for this version
         chromedriver_dir = os.path.join(os.getcwd(), "chromedriver_cache")
@@ -40,13 +67,14 @@ def get_chromedriver_path():
             print(f"✓ Using cached chromedriver for version {version}: {cached_chromedriver}")
             return cached_chromedriver
         
-        # Find the chromedriver download URL for this version
-        downloads = data['channels']['Stable']['downloads']['chromedriver']
-        download_url = None
-        for download in downloads:
-            if download['platform'] == 'linux64':
-                download_url = download['url']
-                break
+        # Find the chromedriver download URL for this version (if not already found)
+        if 'download_url' not in locals() or not download_url:
+            downloads = data['channels']['Stable']['downloads']['chromedriver']
+            download_url = None
+            for download in downloads:
+                if download['platform'] == 'linux64':
+                    download_url = download['url']
+                    break
         
         if not download_url:
             raise Exception(f"No chromedriver download URL found for version {version}")
