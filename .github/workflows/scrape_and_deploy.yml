@@ -31,6 +31,14 @@ jobs:
 
       - name: Install Google Chrome #https://googlechromelabs.github.io/chrome-for-testing/#stable
         run: |
+          # Remove existing chrome directory if it exists
+          if [ -d "chrome" ]; then
+            rm -rf chrome
+          fi
+          # Remove existing chrome zip if it exists
+          if [ -f "chrome-headless-shell-linux64.zip" ]; then
+            rm chrome-headless-shell-linux64.zip
+          fi
           wget https://storage.googleapis.com/chrome-for-testing-public/130.0.6723.91/linux64/chrome-headless-shell-linux64.zip
           unzip chrome-headless-shell-linux64.zip -d chrome
           sudo mv chrome/chrome-headless-shell-linux64/* /usr/local/bin/
@@ -38,6 +46,14 @@ jobs:
 
       - name: Install ChromeDriver
         run: |
+          # Remove existing chromedriver directory if it exists
+          if [ -d "chromedriver" ]; then
+            rm -rf chromedriver
+          fi
+          # Remove existing chromedriver-linux64.zip if it exists
+          if [ -f "chromedriver-linux64.zip" ]; then
+            rm chromedriver-linux64.zip
+          fi
           wget https://storage.googleapis.com/chrome-for-testing-public/130.0.6723.91/linux64/chromedriver-linux64.zip
           unzip chromedriver-linux64.zip -d chromedriver
           sudo mv chromedriver/chromedriver-linux64/chromedriver /usr/local/bin/
