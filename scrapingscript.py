@@ -8,55 +8,16 @@ import sqlite3
 import time
 from selenium.webdriver.chrome.options import Options
 import os
-import shutil
 from webdriver_manager.chrome import ChromeDriverManager
 import glob
 
 # Use system chromedriver installed by GitHub Actions
 chrome_driver_path = "/usr/local/bin/chromedriver"
 print(f"✓ Using system chromedriver: {chrome_driver_path}")
-service = Service(chrome_driver_path)
-
-
-def resolve_chrome_binary():
-    env_path = os.environ.get("CHROME_BIN")
-    if env_path and os.path.isfile(env_path) and os.access(env_path, os.X_OK):
-        return env_path
-
-    candidates = [
-        "/usr/local/bin/google-chrome",
-        "/usr/bin/google-chrome",
-        "/usr/bin/google-chrome-stable",
-        "/usr/local/bin/chrome-headless-shell",
-        "/usr/local/bin/headless_shell",
-        "/usr/bin/chromium",
-        "/usr/bin/chromium-browser",
-    ]
-
-    for candidate in candidates:
-        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
-            return candidate
-
-    for name in [
-        "google-chrome",
-        "google-chrome-stable",
-        "chrome-headless-shell",
-        "headless_shell",
-        "chromium",
-        "chromium-browser",
-    ]:
-        resolved = shutil.which(name)
-        if resolved:
-            return resolved
-
-    raise FileNotFoundError(
-        "Chrome binary not found. Set CHROME_BIN or install Chrome/Chromium."
-    )
+service = Service("/usr/local/bin/chromedriver")
   
 chrome_options = Options()
-chrome_binary = resolve_chrome_binary()
-print(f"✓ Using Chrome binary: {chrome_binary}")
-chrome_options.binary_location = chrome_binary
+chrome_options.binary_location = "/usr/local/bin/google-chrome"
 chrome_options.add_argument("--headless=new")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
