@@ -43,8 +43,12 @@ jobs:
           wget https://storage.googleapis.com/chrome-for-testing-public/140.0.7339.207/linux64/chrome-headless-shell-linux64.zip
           unzip chrome-headless-shell-linux64.zip -d chrome
           sudo mv chrome/chrome-headless-shell-linux64/* /usr/local/bin/
-          sudo ln -s /usr/local/bin/headless_shell /usr/local/bin/google-chrome
-
+          if [ -x /usr/local/bin/chrome-headless-shell ]; then
+            sudo ln -sf /usr/local/bin/chrome-headless-shell /usr/local/bin/google-chrome
+          elif [ -x /usr/local/bin/headless_shell ]; then
+            sudo ln -sf /usr/local/bin/headless_shell /usr/local/bin/google-chrome
+          fi
+          
       - name: Install ChromeDriver
         run: |
           # Remove existing chromedriver directory if it exists
