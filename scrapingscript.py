@@ -3,7 +3,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException, TimeoutException, ElementClickInterceptedException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException, ElementClickInterceptedException, ElementNotInteractableException
 import sqlite3
 import time
 from selenium.webdriver.chrome.options import Options
@@ -88,20 +88,21 @@ driver.get(url)
 # Function to accept cookies
 def accept_cookies():
     try:
-        cookie_banner = WebDriverWait(driver, 30).until(EC.visibility_of_element_located((By.ID, 'CybotCookiebotDialog')))
-        accept_button = driver.find_element(By.ID, 'CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll')
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, 'CybotCookiebotDialog')))
+        accept_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, 'CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll'))
+        )
         
         # Scroll to the accept button
-        driver.execute_script("arguments[0].scrollIntoView();", accept_button)
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", accept_button)
         try:
             accept_button.click()
-        except ElementClickInterceptedException:
-            decline_button = driver.find_element(By.ID, 'CybotCookiebotDialogBodyLevelButtonLevelOptinDeclineAll')
-            driver.execute_script("arguments[0].scrollIntoView();", decline_button)
-            time.sleep(1)
-            accept_button.click()
-        
-        WebDriverWait(driver, 30).until(EC.invisibility_of_element_located((By.ID, 'CybotCookiebotDialog')))
+        except (ElementClickInterceptedException, ElementNotInteractableException):
+            driver.execute_script("arguments[0].click();", accept_button)
+
+        WebDriverWait(driver, 30).until(
+            EC.invisibility_of_element_located((By.ID, 'CybotCookiebotDialog'))
+        )
     except TimeoutException:
         pass
 
