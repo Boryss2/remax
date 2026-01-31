@@ -3,7 +3,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException, TimeoutException, ElementClickInterceptedException, ElementNotInteractableException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException, ElementClickInterceptedException, ElementNotInteractableException, StaleElementReferenceException
 import sqlite3
 import time
 from selenium.webdriver.chrome.options import Options
@@ -120,65 +120,77 @@ while True:
     print(f"Scraping page {page_count}...")
     
     # Find all listing card containers using new Material-UI structure
-    listings = driver.find_elements(By.CSS_SELECTOR, '.MuiGrid-item .listing-card')
+    listing_selector = '.MuiGrid-item .listing-card'
+    listings = driver.find_elements(By.CSS_SELECTOR, listing_selector)
     print(f"Found {len(listings)} listings on page {page_count}")
 
     # Loop through the listings and extract data
-    for i, listing in enumerate(listings):
-        try:
-            # Extract title from the link element
-            title_element = listing.find_element(By.CSS_SELECTOR, '.listing-info')
-            title = title_element.get_attribute('title')
-            
-            # Extract PLN price
+    for i in range(len(listings)):
+        attempts = 0
+        while attempts < 2:
             try:
-                PLN_element = listing.find_element(By.CSS_SELECTOR, '.card-first-price')
-                PLN = PLN_element.text
-            except NoSuchElementException:
-                PLN = "N/A"
-            
-            # Extract EUR price
-            try:
-                EUR_element = listing.find_element(By.CSS_SELECTOR, '.MuiTypography-body2 span')
-                EUR = EUR_element.text
-            except NoSuchElementException:
-                EUR = "N/A"
-            
-            # Extract listing type (property type)
-            try:
-                listing_type_element = listing.find_element(By.CSS_SELECTOR, '.listing-type-address p:first-child')
-                listing_type = listing_type_element.text
-            except NoSuchElementException:
-                listing_type = "N/A"
-            
-            # Extract property type (same as listing type in new structure)
-            property_type = listing_type
-            
-            # Extract lot size (living area)
-            try:
-                lot_size_element = listing.find_element(By.CSS_SELECTOR, '[aria-label*="Pow. mieszkalna"] p')
-                lot_size = lot_size_element.text + " m²"
-            except NoSuchElementException:
-                lot_size = "N/A"
+                listings = driver.find_elements(By.CSS_SELECTOR, listing_selector)
+                listing = listings[i]
 
-            # Extract image source from the gallery
-            try:
-                # Find the first visible image in the gallery
-                image_element = listing.find_element(By.CSS_SELECTOR, '.image-gallery-slide img[src]')
-                image_src = image_element.get_attribute('src')
-            except NoSuchElementException:
-                image_src = "N/A"
+                # Extract title from the link element
+                title_element = listing.find_element(By.CSS_SELECTOR, '.listing-info')
+                title = title_element.get_attribute('title')
 
-            # Extract link to offer
-            link_to_offer = title_element.get_attribute('href')
+                # Extract PLN price
+                try:
+                    PLN_element = listing.find_element(By.CSS_SELECTOR, '.card-first-price')
+                    PLN = PLN_element.text
+                except NoSuchElementException:
+                    PLN = "N/A"
 
-            # Insert data into the database
-            c.execute("INSERT INTO listings VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                      (title, PLN, EUR, listing_type, property_type, lot_size, image_src, link_to_offer))
-            print(f"  Processed listing {i+1}: {title}")
-        except NoSuchElementException as e:
-            print(f"  Skipped listing {i+1}: Missing element - {str(e)}")
-            pass  # Handle missing elements
+                # Extract EUR price
+                try:
+                    EUR_element = listing.find_element(By.CSS_SELECTOR, '.MuiTypography-body2 span')
+                    EUR = EUR_element.text
+                except NoSuchElementException:
+                    EUR = "N/A"
+
+                # Extract listing type (property type)
+                try:
+                    listing_type_element = listing.find_element(By.CSS_SELECTOR, '.listing-type-address p:first-child')
+                    listing_type = listing_type_element.text
+                except NoSuchElementException:
+                    listing_type = "N/A"
+
+                # Extract property type (same as listing type in new structure)
+                property_type = listing_type
+
+                # Extract lot size (living area)
+                try:
+                    lot_size_element = listing.find_element(By.CSS_SELECTOR, '[aria-label*="Pow. mieszkalna"] p')
+                    lot_size = lot_size_element.text + " m²"
+                except NoSuchElementException:
+                    lot_size = "N/A"
+
+                # Extract image source from the gallery
+                try:
+                    # Find the first visible image in the gallery
+                    image_element = listing.find_element(By.CSS_SELECTOR, '.image-gallery-slide img[src]')
+                    image_src = image_element.get_attribute('src')
+                except NoSuchElementException:
+                    image_src = "N/A"
+
+                # Extract link to offer
+                link_to_offer = title_element.get_attribute('href')
+
+                # Insert data into the database
+                c.execute("INSERT INTO listings VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                          (title, PLN, EUR, listing_type, property_type, lot_size, image_src, link_to_offer))
+                print(f"  Processed listing {i+1}: {title}")
+                break
+            except StaleElementReferenceException:
+                attempts += 1
+                time.sleep(1)
+                if attempts >= 2:
+                    print(f"  Skipped listing {i+1}: Stale element after retry")
+            except NoSuchElementException as e:
+                print(f"  Skipped listing {i+1}: Missing element - {str(e)}")
+                break  # Handle missing elements
         
     # Commit changes to the database
     conn.commit()
