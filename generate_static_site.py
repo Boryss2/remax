@@ -40,27 +40,27 @@ def generate_static_site():
             'link_to_offer': link_to_offer
         })
     
-    # Read the HTML template
-    template_path = 'templates/index.html'
-    if not os.path.exists(template_path):
-        print(f"Template file {template_path} not found!")
-        return False
-    
-    with open(template_path, 'r', encoding='utf-8') as f:
-        template_content = f.read()
-    
-    # Create Jinja2 template
-    template = Template(template_content)
-    
-    # Render the template with listings data
-    rendered_html = template.render(listings=listings_data)
-    
-    # Write the rendered HTML to index.html in the root directory
-    output_path = 'index.html'
-    with open(output_path, 'w', encoding='utf-8') as f:
-        f.write(rendered_html)
-    
-    print(f"Static site generated successfully: {output_path}")
+    templates = [
+        ("templates/index.html", "index.html", {"listings": listings_data}),
+        ("templates/kariera.html", "kariera.html", {}),
+    ]
+
+    for template_path, output_path, context in templates:
+        if not os.path.exists(template_path):
+            print(f"Template file {template_path} not found!")
+            return False
+
+        with open(template_path, 'r', encoding='utf-8') as f:
+            template_content = f.read()
+
+        template = Template(template_content)
+        rendered_html = template.render(**context)
+
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(rendered_html)
+
+        print(f"Static site generated successfully: {output_path}")
+
     print(f"Number of listings processed: {len(listings_data)}")
     
     return True
